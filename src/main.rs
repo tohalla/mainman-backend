@@ -1,3 +1,9 @@
-fn main() {
-    println!("Hello, world!");
+mod health;
+mod routes;
+mod server;
+
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
+    server::start().await
 }
