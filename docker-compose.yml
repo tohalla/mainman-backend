@@ -21,5 +21,20 @@ services:
       - ./.env
       - ./db/.env
 
+  migrate:
+    build:
+      context: ./db
+      dockerfile: migrate.Dockerfile
+    depends_on:
+      - db
+    links:
+      - db:db
+    env_file:
+      - ./db/.env
+    volumes:
+      - ./db/migrations:/migrate/migrations:ro
+      - ${PWD}/src/schema.rs:/migrate/src/schema.rs
+      - ${PWD}/diesel.toml:/migrate/diesel.toml
+
   cache:
     image: redis:latest

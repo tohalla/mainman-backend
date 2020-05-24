@@ -1,5 +1,5 @@
 [package]
-name = "hallussa-backend"
+name = "mainman-backend"
 version = "0.1.0"
 authors = ["Touko Hallasmaa <hallasmaa.touko@gmail.com>"]
 edition = "2018"
