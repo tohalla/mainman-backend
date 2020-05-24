@@ -6,6 +6,7 @@ pub async fn start() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .configure(super::db::add_pool)
+            .configure(super::cache::add_cache)
             .configure(super::routes::routes)
     });
 
