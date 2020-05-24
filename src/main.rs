@@ -1,3 +1,5 @@
+mod cache;
+mod db;
 mod health;
 mod routes;
 mod server;

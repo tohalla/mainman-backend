@@ -1,13 +1,15 @@
 use actix_web::{middleware::Logger, App, HttpServer};
 use listenfd::ListenFd;
 
-use crate::routes::routes;
-
 pub async fn start() -> std::io::Result<()> {
-    let mut listenfd = ListenFd::from_env();
-    let mut server = HttpServer::new(|| App::new().wrap(Logger::default()).configure(routes));
+    let mut server = HttpServer::new(|| {
+        App::new()
+            .wrap(Logger::default())
+            .configure(super::db::add_pool)
+            .configure(super::routes::routes)
+    });
 
-    server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+    server = if let Some(l) = ListenFd::from_env().take_tcp_listener(0).unwrap() {
         server.listen(l)?
     } else {
         server.bind("0.0.0.0:8080")?

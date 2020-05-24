@@ -9,6 +9,8 @@ services:
     command: hallussa-backend
     ports:
       - 8080:8080
+    env_file:
+      - ./.env
 
   db:
     build: ./db
@@ -17,7 +19,7 @@ services:
     restart: unless-stopped
     env_file:
       - ./.env
-      - ./db.env
+      - ./db/.env
 
   cache:
     image: redis:latest

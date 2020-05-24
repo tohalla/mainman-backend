@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 <<-EOSQL
+  CREATE USER hallussa_client WITH PASSWORD '$DB_PASSWORD_CLIENT';
+  REVOKE CONNECT ON DATABASE hallussa FROM PUBLIC;
+  GRANT CONNECT ON DATABASE hallussa TO hallussa_client;
+  REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC;
+  GRANT SELECT, INSERT, UPDATE, DELETE
+    ON ALL TABLES IN SCHEMA public
+  TO hallussa_client;
+
+  CREATE EXTENSION "uuid-ossp";
+EOSQL
