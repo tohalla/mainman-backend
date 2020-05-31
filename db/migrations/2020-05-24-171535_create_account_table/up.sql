@@ -8,5 +8,5 @@ CREATE TABLE account (
   password BYTEA NOT NULL
 );
 
-GRANT USAGE, SELECT ON SEQUENCE account_id_seq TO hallussa_client;
-GRANT SELECT, INSERT, UPDATE ON TABLE account TO hallussa_client;
+GRANT USAGE, SELECT ON SEQUENCE account_id_seq TO mainman_client;
+GRANT SELECT, INSERT, UPDATE ON TABLE account TO mainman_client;

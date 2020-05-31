@@ -6,7 +6,7 @@ services:
       - db
       - cache
     restart: unless-stopped
-    command: hallussa-backend
+    command: mainman
     ports:
       - 8080:8080
     env_file:

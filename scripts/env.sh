@@ -1,7 +1,7 @@
 #!/bin/bash
 LC_ALL=C cat <<EOF >./db/.env
 POSTGRES_PASSWORD=$(</dev/urandom tr -dc 'A-Za-z0-9' | head -c 64)
-POSTGRES_DB=hallussa
+POSTGRES_DB=mainman
 EOF
 
 LC_ALL=C cat <<EOF >./.env

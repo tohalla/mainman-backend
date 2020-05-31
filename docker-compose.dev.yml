@@ -6,5 +6,8 @@ services:
       dockerfile: Dockerfile.dev
     command: systemfd --no-pid -s http::0.0.0.0:8080 -- cargo watch -x run
     volumes:
-      - ./src:/usr/src/hallussa-backend/src
-
+      - ./src:/usr/src/mainman/src
+      - ./Cargo.toml:/usr/src/mainman/Cargo.toml
+    environment:
+      - RUST_BACKTRACE=1
+      - RUST_LOG=my_errors=debug,actix_web=info
