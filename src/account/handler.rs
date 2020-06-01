@@ -1,0 +1,63 @@
+use actix_web::{
+    web::{block, Data, Json, Path},
+    Result,
+};
+use bcrypt::{hash, DEFAULT_COST};
+
+use super::{create, find, CreateAccount};
+use crate::db::Pool;
+
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub struct AccountResponse {
+    pub id: i32,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub email: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CreateAccountPayload {
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+    pub password: String,
+    pub retype_password: String,
+}
+
+pub async fn create_account(
+    pool: Data<Pool>,
+    payload: Json<CreateAccountPayload>,
+) -> Result<Json<AccountResponse>> {
+    let account = block(move || {
+        create(
+            &pool,
+            CreateAccount {
+                email: &payload.email,
+                first_name: &payload.first_name,
+                last_name: &payload.last_name,
+                password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
+            },
+        )
+    })
+    .await?;
+    Ok(Json(account))
+}
+
+pub async fn get_account(
+    pool: Data<Pool>,
+    id: Path<i32>,
+) -> Result<Json<AccountResponse>> {
+    let account = block(move || find(&pool, *id)).await?;
+    Ok(Json(account))
+}
+
+impl From<super::Account> for AccountResponse {
+    fn from(account: super::Account) -> Self {
+        AccountResponse {
+            id: account.id,
+            first_name: account.first_name,
+            last_name: account.last_name,
+            email: account.email,
+        }
+    }
+}

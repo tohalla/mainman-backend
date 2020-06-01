@@ -1,6 +1,6 @@
 CREATE TABLE account (
   id SERIAL PRIMARY KEY,
-  created_at TIMESTAMP DEFAULT NOW(),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP,
   first_name VARCHAR(64),
   last_name VARCHAR(64),

@@ -2,15 +2,18 @@
 extern crate diesel;
 #[macro_use]
 extern crate serde;
+#[macro_use]
+extern crate failure;
 
+mod account;
 mod cache;
 mod db;
+mod error;
 mod health;
 mod routes;
 mod schema;
 mod server;
-
-mod account;
+mod state;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
