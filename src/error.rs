@@ -13,14 +13,14 @@ use failure::Fail;
 #[derive(Fail, Debug, PartialEq)]
 #[allow(dead_code)]
 pub enum ApiError {
-    #[fail(display = "")]
+    #[fail(display = "Internal server error")]
+    InternalServerError(String),
+    #[fail(display = "Bad request {}", _0)]
     BadRequest(String),
     #[fail(display = "")]
     BlockingError(String),
     #[fail(display = "")]
     CacheError(String),
-    #[fail(display = "")]
-    InternalServerError(String),
     #[fail(display = "")]
     NotFound(String),
     #[fail(display = "")]
