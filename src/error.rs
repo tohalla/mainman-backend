@@ -1,6 +1,7 @@
+use actix_http::ResponseBuilder;
 use actix_web::{
     error::{BlockingError, ResponseError},
-    http::StatusCode,
+    http::{header, StatusCode},
     HttpResponse,
 };
 use bcrypt::BcryptError;
@@ -11,63 +12,36 @@ use diesel::{
 use failure::Fail;
 
 #[derive(Fail, Debug, PartialEq)]
-#[allow(dead_code)]
 pub enum ApiError {
     #[fail(display = "Internal server error")]
-    InternalServerError(String),
+    InternalServerError,
     #[fail(display = "Bad request {}", _0)]
     BadRequest(String),
     #[fail(display = "")]
-    BlockingError(String),
+    BlockingError,
     #[fail(display = "")]
-    CacheError(String),
+    NotFound,
     #[fail(display = "")]
-    NotFound(String),
+    PoolError,
     #[fail(display = "")]
-    PoolError(String),
+    Unauthorized,
     #[fail(display = "")]
-    ValidationError(Vec<String>),
-    #[fail(display = "")]
-    Unauthorized(String),
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct ErrorResponse {
-    errors: Vec<String>,
+    EncodingError,
 }
 
 impl ResponseError for ApiError {
     fn error_response(&self) -> HttpResponse {
-        match self {
-            ApiError::BadRequest(error) => {
-                HttpResponse::BadRequest().json::<ErrorResponse>(error.into())
-            }
-            ApiError::NotFound(message) => {
-                HttpResponse::NotFound().json::<ErrorResponse>(message.into())
-            }
-            ApiError::ValidationError(errors) => {
-                HttpResponse::UnprocessableEntity()
-                    .json::<ErrorResponse>(errors.to_vec().into())
-            }
-            ApiError::Unauthorized(error) => {
-                HttpResponse::Unauthorized().json::<ErrorResponse>(error.into())
-            }
-            _ => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR),
-        }
+        ResponseBuilder::new(self.status_code())
+            .set_header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .body(self.to_string())
     }
-}
 
-impl From<&String> for ErrorResponse {
-    fn from(error: &String) -> Self {
-        ErrorResponse {
-            errors: vec![error.into()],
+    fn status_code(&self) -> StatusCode {
+        match *self {
+            ApiError::Unauthorized => StatusCode::UNAUTHORIZED,
+            ApiError::NotFound => StatusCode::NOT_FOUND,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
-    }
-}
-
-impl From<Vec<String>> for ErrorResponse {
-    fn from(errors: Vec<String>) -> Self {
-        ErrorResponse { errors }
     }
 }
 
@@ -82,16 +56,16 @@ impl From<DBError> for ApiError {
                         .to_string();
                     return ApiError::BadRequest(message);
                 }
-                ApiError::InternalServerError("Unknown database error".into())
+                ApiError::InternalServerError
             }
-            _ => ApiError::InternalServerError("Unknown database error".into()),
+            _ => ApiError::InternalServerError,
         }
     }
 }
 
 impl From<PoolError> for ApiError {
-    fn from(error: PoolError) -> ApiError {
-        ApiError::PoolError(error.to_string())
+    fn from(_: PoolError) -> ApiError {
+        ApiError::PoolError
     }
 }
 
@@ -99,15 +73,19 @@ impl From<BlockingError<ApiError>> for ApiError {
     fn from(error: BlockingError<ApiError>) -> ApiError {
         match error {
             BlockingError::Error(api_error) => api_error,
-            BlockingError::Canceled => {
-                ApiError::BlockingError("Thread blocking error".into())
-            }
+            BlockingError::Canceled => ApiError::BlockingError,
         }
     }
 }
 
 impl From<BcryptError> for ApiError {
-    fn from(error: BcryptError) -> ApiError {
-        ApiError::BlockingError(error.to_string())
+    fn from(_: BcryptError) -> ApiError {
+        ApiError::BlockingError
+    }
+}
+
+impl From<std::str::Utf8Error> for ApiError {
+    fn from(_: std::str::Utf8Error) -> ApiError {
+        ApiError::EncodingError
     }
 }

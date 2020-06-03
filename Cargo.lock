@@ -1137,6 +1137,7 @@ name = "mainman"
 version = "0.1.0"
 dependencies = [
  "actix-cors",
+ "actix-http",
  "actix-identity",
  "actix-redis",
  "actix-rt",

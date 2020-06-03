@@ -1,11 +1,9 @@
-use actix_web::{
-    web::{block, Data, Json, Path},
-    Result,
-};
+use actix_web::web::{block, Data, Json, Path};
 use bcrypt::{hash, DEFAULT_COST};
 
 use super::{create, find, CreateAccount};
 use crate::db::Pool;
+use crate::error::ApiError;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct AccountResponse {
@@ -27,7 +25,7 @@ pub struct CreateAccountPayload {
 pub async fn create_account(
     pool: Data<Pool>,
     payload: Json<CreateAccountPayload>,
-) -> Result<Json<AccountResponse>> {
+) -> Result<Json<AccountResponse>, ApiError> {
     let account = block(move || {
         create(
             &pool,
@@ -46,7 +44,7 @@ pub async fn create_account(
 pub async fn get_account(
     pool: Data<Pool>,
     id: Path<i32>,
-) -> Result<Json<AccountResponse>> {
+) -> Result<Json<AccountResponse>, ApiError> {
     let account = block(move || find(&pool, *id)).await?;
     Ok(Json(account))
 }

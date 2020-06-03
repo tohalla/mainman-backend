@@ -46,7 +46,7 @@ pub fn find(
     let account_response = account
         .find(account_id)
         .first::<Account>(&conn)
-        .map_err(|_| ApiError::NotFound("".to_string()))?;
+        .map_err(|_| ApiError::NotFound)?;
 
     Ok(account_response.into())
 }

@@ -23,7 +23,7 @@ pub fn encode_jwt(claim: Claim) -> Result<String, ApiError> {
         &claim,
         &EncodingKey::from_secret(std::env::var("JWT_KEY").unwrap().as_ref()),
     )
-    .map_err(|e| ApiError::InternalServerError(e.to_string()))
+    .map_err(|_| ApiError::InternalServerError)
 }
 
 #[allow(dead_code)]
@@ -34,7 +34,7 @@ pub fn decode_jwt(token: &str) -> Result<Claim, ApiError> {
         &Validation::default(),
     )
     .map(|data| data.claims)
-    .map_err(|e| ApiError::InternalServerError(e.to_string()))
+    .map_err(|_| ApiError::InternalServerError)
 }
 
 pub fn find_by_auth_details(

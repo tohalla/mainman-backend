@@ -1,10 +1,11 @@
 use actix_identity::Identity;
 use actix_web::{
     web::{block, Data, Json},
-    HttpResponse, Result,
+    HttpResponse,
 };
 
 use crate::db::Pool;
+use crate::error::ApiError;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AuthPayload {
@@ -16,17 +17,17 @@ pub async fn authenticate(
     identity: Identity,
     pool: Data<Pool>,
     payload: Json<AuthPayload>,
-) -> Result<HttpResponse> {
+) -> Result<HttpResponse, ApiError> {
     let account_id =
         block(move || super::find_by_auth_details(&pool, payload.into_inner()))
             .await?;
 
     identity.remember(super::encode_jwt(account_id.into())?);
 
-    Ok(HttpResponse::Found().finish())
+    Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn sign_out(identity: Identity) -> Result<HttpResponse> {
+pub async fn sign_out(identity: Identity) -> Result<HttpResponse, ApiError> {
     identity.forget();
     Ok(HttpResponse::Ok().finish())
 }
