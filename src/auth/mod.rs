@@ -1,3 +1,4 @@
+use bcrypt::verify;
 use chrono::{Duration, Utc};
 use diesel::prelude::*;
 use jsonwebtoken::{
@@ -45,12 +46,16 @@ pub fn find_by_auth_details(
 
     let conn = pool.get()?;
     let result = account
-        .select(id)
+        .select((id, password))
         .filter(email.eq(payload.email))
-        .first::<i32>(&conn)
-        .map_err(|_| ApiError::NotFound("".to_string()))?;
+        .first::<(i32, Vec<u8>)>(&conn)
+        .map_err(|_| ApiError::NotFound)?;
 
-    Ok(result)
+    if verify(payload.password, std::str::from_utf8(&result.1)?)? {
+        Ok(result.0)
+    } else {
+        Err(ApiError::Unauthorized)
+    }
 }
 
 impl From<i32> for Claim {
