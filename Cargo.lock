@@ -13,7 +13,7 @@ dependencies = [
  "bytes",
  "crossbeam-channel",
  "derive_more",
- "futures 0.3.5",
+ "futures",
  "lazy_static",
  "log",
  "parking_lot",
@@ -52,7 +52,7 @@ dependencies = [
  "actix-utils",
  "derive_more",
  "either",
- "futures 0.3.5",
+ "futures",
  "http",
  "log",
  "trust-dns-proto",
@@ -68,7 +68,7 @@ dependencies = [
  "actix-service",
  "actix-web",
  "derive_more",
- "futures 0.3.5",
+ "futures",
 ]
 
 [[package]]
@@ -127,7 +127,7 @@ checksum = "2a379b0639c293292d71defb8cc1f94c87b7705c904adf044338ad392df77c7a"
 dependencies = [
  "actix-service",
  "actix-web",
- "futures 0.3.5",
+ "futures",
  "serde",
  "serde_json",
  "time",
@@ -157,7 +157,7 @@ dependencies = [
  "actix-web",
  "backoff",
  "derive_more",
- "futures 0.3.5",
+ "futures",
  "log",
  "rand 0.7.3",
  "redis-async",
@@ -236,7 +236,7 @@ dependencies = [
  "actix-web",
  "bytes",
  "derive_more",
- "futures 0.3.5",
+ "futures",
  "serde",
  "serde_json",
  "time",
@@ -283,7 +283,7 @@ dependencies = [
  "actix-utils",
  "derive_more",
  "either",
- "futures 0.3.5",
+ "futures",
  "log",
 ]
 
@@ -299,7 +299,7 @@ dependencies = [
  "bitflags",
  "bytes",
  "either",
- "futures 0.3.5",
+ "futures",
  "log",
  "pin-project",
  "slab",
@@ -327,7 +327,7 @@ dependencies = [
  "bytes",
  "derive_more",
  "encoding_rs",
- "futures 0.3.5",
+ "futures",
  "fxhash",
  "log",
  "mime",
@@ -779,12 +779,6 @@ checksum = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 
 [[package]]
 name = "futures"
-version = "0.1.29"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b980f2816d6ee8673b6517b52cb0e808a180efc92e5c19d02cdda79066703ef"
-
-[[package]]
-name = "futures"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e05b85ec287aac0dc34db7d4a569323df697f9c55b99b15d6b4ef8cde49f613"
@@ -1147,7 +1141,7 @@ dependencies = [
  "diesel",
  "dotenv",
  "failure",
- "futures 0.1.29",
+ "futures",
  "jsonwebtoken",
  "listenfd",
  "r2d2",
@@ -1931,7 +1925,7 @@ dependencies = [
  "async-trait",
  "enum-as-inner",
  "failure",
- "futures 0.3.5",
+ "futures",
  "idna",
  "lazy_static",
  "log",
@@ -1950,7 +1944,7 @@ checksum = "6f90b1502b226f8b2514c6d5b37bafa8c200d7ca4102d57dc36ee0f3b7a04a2f"
 dependencies = [
  "cfg-if",
  "failure",
- "futures 0.3.5",
+ "futures",
  "ipconfig",
  "lazy_static",
  "log",
