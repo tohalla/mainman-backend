@@ -120,6 +120,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-identity"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a379b0639c293292d71defb8cc1f94c87b7705c904adf044338ad392df77c7a"
+dependencies = [
+ "actix-service",
+ "actix-web",
+ "futures 0.3.5",
+ "serde",
+ "serde_json",
+ "time",
+]
+
+[[package]]
 name = "actix-macros"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1119,10 +1133,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "mainman-backend"
+name = "mainman"
 version = "0.1.0"
 dependencies = [
  "actix-cors",
+ "actix-identity",
  "actix-redis",
  "actix-rt",
  "actix-web",
@@ -1135,6 +1150,7 @@ dependencies = [
  "jsonwebtoken",
  "listenfd",
  "r2d2",
+ "rand 0.7.3",
  "redis-async",
  "serde",
  "uuid 0.8.1",

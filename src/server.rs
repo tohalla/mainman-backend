@@ -5,18 +5,21 @@ use actix_web::{
 };
 use listenfd::ListenFd;
 
+use crate::auth;
+
 pub async fn start() -> std::io::Result<()> {
     let pool = super::db::get_pool();
     let state = super::state::new_state::<String>();
 
     let mut server = HttpServer::new(move || {
         App::new()
+            .app_data(state.clone())
+            .data(pool.clone())
+            .wrap(auth::middleware::default())
             .configure(super::cache::add_cache)
             .wrap(Cors::new().supports_credentials().finish())
-            .wrap(Logger::default())
             .wrap(NormalizePath)
-            .data(pool.clone())
-            .app_data(state.clone())
+            .wrap(Logger::default())
             .configure(super::routes::routes)
     });
 
