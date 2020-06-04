@@ -1135,6 +1135,7 @@ dependencies = [
  "actix-identity",
  "actix-redis",
  "actix-rt",
+ "actix-service",
  "actix-web",
  "bcrypt",
  "chrono",
