@@ -8,6 +8,7 @@ use jsonwebtoken::{
 use crate::db::Pool;
 use crate::error::ApiError;
 
+pub mod extractor;
 mod handler;
 pub mod middleware;
 pub mod routes;
