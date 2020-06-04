@@ -14,7 +14,6 @@ mod health;
 mod routes;
 mod schema;
 mod server;
-mod state;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

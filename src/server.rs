@@ -9,11 +9,9 @@ use crate::auth;
 
 pub async fn start() -> std::io::Result<()> {
     let pool = super::db::get_pool();
-    let state = super::state::new_state::<String>();
 
     let mut server = HttpServer::new(move || {
         App::new()
-            .app_data(state.clone())
             .data(pool.clone())
             .wrap(auth::middleware::default())
             .configure(super::cache::add_cache)
