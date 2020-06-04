@@ -35,7 +35,7 @@ pub fn decode_jwt(token: &str) -> Result<Claim, ApiError> {
         &Validation::default(),
     )
     .map(|data| data.claims)
-    .map_err(|_| ApiError::InternalServerError)
+    .map_err(|_| ApiError::Unauthorized)
 }
 
 pub fn find_by_auth_details(
