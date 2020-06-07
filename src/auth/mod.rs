@@ -1,6 +1,9 @@
+use actix_identity::RequestIdentity;
+use actix_web::{dev, FromRequest, HttpRequest, Result};
 use bcrypt::verify;
 use chrono::{Duration, Utc};
 use diesel::prelude::*;
+use futures::future::{err, ok, Ready};
 use jsonwebtoken::{
     decode, encode, DecodingKey, EncodingKey, Header, Validation,
 };
@@ -8,7 +11,6 @@ use jsonwebtoken::{
 use crate::db::Pool;
 use crate::error::ApiError;
 
-pub mod extractor;
 mod handler;
 pub mod middleware;
 pub mod routes;
@@ -56,6 +58,31 @@ pub fn find_by_auth_details(
         Ok(result.0)
     } else {
         Err(ApiError::Unauthorized)
+    }
+}
+
+#[derive(Debug)]
+pub struct AuthenticationDetails {
+    account_id: i32,
+}
+
+impl FromRequest for AuthenticationDetails {
+    type Error = ApiError;
+    type Future = Ready<Result<Self, Self::Error>>;
+    type Config = ();
+
+    fn from_request(req: &HttpRequest, _: &mut dev::Payload) -> Self::Future {
+        if let Some(auth_token) = req.get_identity() {
+            match decode_jwt(&auth_token) {
+                Ok(claim) => {
+                    return ok(AuthenticationDetails {
+                        account_id: claim.account_id,
+                    })
+                }
+                Err(_) => return err(ApiError::Unauthorized),
+            };
+        }
+        err(ApiError::Unauthorized)
     }
 }
 
