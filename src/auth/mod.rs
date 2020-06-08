@@ -52,7 +52,7 @@ pub fn find_by_auth_details(
         .select((id, password))
         .filter(email.eq(payload.email))
         .first::<(i32, Vec<u8>)>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
+        .map_err(|_| ApiError::Unauthorized)?;
 
     if verify(payload.password, std::str::from_utf8(&result.1)?)? {
         Ok(result.0)
