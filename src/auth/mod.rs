@@ -2,7 +2,7 @@ use actix_identity::RequestIdentity;
 use actix_web::{dev, FromRequest, HttpRequest, Result};
 use bcrypt::verify;
 use chrono::{Duration, Utc};
-use diesel::prelude::*;
+use diesel::{dsl::sql, prelude::*, sql_types};
 use futures::future::{err, ok, Ready};
 use jsonwebtoken::{
     decode, encode, DecodingKey, EncodingKey, Header, Validation,
@@ -50,7 +50,10 @@ pub fn find_by_auth_details(
     let conn = pool.get()?;
     let result = account
         .select((id, password))
-        .filter(email.eq(payload.email))
+        .filter(
+            sql("lower(email) = ")
+                .bind::<sql_types::Text, _>(payload.email.to_lowercase()),
+        )
         .first::<(i32, Vec<u8>)>(&conn)
         .map_err(|_| ApiError::Unauthorized)?;
 
