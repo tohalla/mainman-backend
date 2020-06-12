@@ -32,6 +32,7 @@ services:
     env_file:
       - ./db/.env
     volumes:
+      - ./db/scripts:/migrate/scripts:ro
       - ./db/migrations:/migrate/migrations:ro
       - ${PWD}/src/schema.rs:/migrate/src/schema.rs
       - ${PWD}/diesel.toml:/migrate/diesel.toml
