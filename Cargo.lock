@@ -1143,6 +1143,7 @@ dependencies = [
  "dotenv",
  "failure",
  "futures",
+ "heck",
  "jsonwebtoken",
  "listenfd",
  "r2d2",

@@ -1,9 +1,10 @@
 use actix_web::web::{block, Data, Json, Path};
 use bcrypt::{hash, DEFAULT_COST};
 
-use super::{create, find, CreateAccount};
+use super::{create, find, Account, CreateAccount};
 use crate::db::Pool;
 use crate::error::ApiError;
+use heck::TitleCase;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct AccountResponse {
@@ -31,8 +32,8 @@ pub async fn create_account(
             &pool,
             CreateAccount {
                 email: &payload.email,
-                first_name: &payload.first_name,
-                last_name: &payload.last_name,
+                first_name: &payload.first_name.to_title_case(),
+                last_name: &payload.last_name.to_title_case(),
                 password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
             },
         )
@@ -49,8 +50,8 @@ pub async fn get_account(
     Ok(Json(account))
 }
 
-impl From<super::Account> for AccountResponse {
-    fn from(account: super::Account) -> Self {
+impl From<Account> for AccountResponse {
+    fn from(account: Account) -> Self {
         AccountResponse {
             id: account.id,
             first_name: account.first_name,
