@@ -66,7 +66,7 @@ pub fn find_by_auth_details(
 
 #[derive(Debug)]
 pub struct AuthenticationDetails {
-    account_id: i32,
+    pub account_id: i32,
 }
 
 impl FromRequest for AuthenticationDetails {
