@@ -1,3 +1,4 @@
+use actix_http::cookie::SameSite;
 use actix_identity::{CookieIdentityPolicy, IdentityService, RequestIdentity};
 use actix_service::{Service, Transform};
 use actix_web::{
@@ -19,6 +20,7 @@ pub fn default() -> IdentityService<CookieIdentityPolicy> {
             std::env::var("SESSION_KEY").unwrap().as_ref(),
         )
         .name("authorization")
+        .same_site(SameSite::Strict)
         .secure(false),
     )
 }
