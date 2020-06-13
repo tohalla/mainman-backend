@@ -21,10 +21,10 @@ pub struct Organisation {
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "organisation"]
-pub struct CreateOrganisation {
-    name: String,
-    organisation_identifier: Option<String>,
-    locale: String,
+pub struct CreateOrganisation<'a> {
+    name: &'a str,
+    organisation_identifier: Option<&'a str>,
+    locale: &'a str,
     admin_account: i32,
 }
 

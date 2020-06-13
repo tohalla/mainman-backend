@@ -4,6 +4,13 @@ use super::*;
 use crate::db::Pool;
 use crate::error::ApiError;
 
+#[derive(Debug, Deserialize)]
+pub struct CreateOrganisationPayload {
+    name: String,
+    organisation_identifier: String,
+    locale: String,
+}
+
 pub async fn get_organisation(
     pool: Data<Pool>,
     id: Path<i32>,
@@ -24,13 +31,21 @@ pub async fn get_organisations(
 
 pub async fn create_organisation(
     pool: Data<Pool>,
-    payload: Json<CreateOrganisation>,
+    payload: Json<CreateOrganisationPayload>,
     authentication_details: crate::auth::AuthenticationDetails,
 ) -> Result<Json<Organisation>, ApiError> {
-    let mut insertable = payload.into_inner();
-    insertable.admin_account = authentication_details.account_id;
-
-    let organisation = block(move || create(&pool, insertable)).await?;
+    let organisation = block(move || {
+        create(
+            &pool,
+            CreateOrganisation {
+                admin_account: authentication_details.account_id,
+                name: &payload.name,
+                organisation_identifier: Some(&payload.organisation_identifier),
+                locale: &payload.locale,
+            },
+        )
+    })
+    .await?;
     Ok(Json(organisation))
 }
 
