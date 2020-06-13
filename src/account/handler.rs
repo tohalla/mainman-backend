@@ -27,6 +27,10 @@ pub async fn create_account(
     pool: Data<Pool>,
     payload: Json<CreateAccountPayload>,
 ) -> Result<Json<AccountResponse>, ApiError> {
+    if payload.password != payload.retype_password {
+        return Err(ApiError::ValidationError);
+    }
+
     let account = block(move || {
         create(
             &pool,

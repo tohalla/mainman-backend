@@ -27,6 +27,8 @@ pub enum ApiError {
     Unauthorized,
     #[fail(display = "")]
     EncodingError,
+    #[fail(display = "")]
+    ValidationError,
 }
 
 impl ResponseError for ApiError {
@@ -39,6 +41,7 @@ impl ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match *self {
             ApiError::Unauthorized => StatusCode::UNAUTHORIZED,
+            ApiError::ValidationError => StatusCode::BAD_REQUEST,
             ApiError::NotFound => StatusCode::NOT_FOUND,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
