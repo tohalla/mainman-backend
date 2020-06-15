@@ -28,5 +28,5 @@ CREATE TABLE organisation_account (
 
 GRANT USAGE, SELECT
   ON SEQUENCE organisation_id_seq, account_role_id_seq TO mainman_client;
-GRANT SELECT, INSERT, UPDATE
+GRANT SELECT, INSERT, UPDATE, DELETE
   ON TABLE organisation, account_role, organisation_account TO mainman_client;
