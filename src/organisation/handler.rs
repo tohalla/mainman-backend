@@ -13,9 +13,9 @@ pub struct CreateOrganisationPayload {
 
 pub async fn get_organisation(
     pool: Data<Pool>,
-    id: Path<i32>,
+    organisation: Path<i32>,
 ) -> Result<Json<Organisation>, ApiError> {
-    let organisation = block(move || find(&pool, *id)).await?;
+    let organisation = block(move || find(&pool, *organisation)).await?;
     Ok(Json(organisation))
 }
 
