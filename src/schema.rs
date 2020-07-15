@@ -22,6 +22,17 @@ table! {
 }
 
 table! {
+    appliance (hash) {
+        hash -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
+        name -> Varchar,
+        description -> Nullable<Text>,
+        organisation -> Int4,
+    }
+}
+
+table! {
     organisation (id) {
         id -> Int4,
         created_at -> Timestamp,
@@ -43,6 +54,7 @@ table! {
 }
 
 joinable!(account_role -> organisation (organisation));
+joinable!(appliance -> organisation (organisation));
 joinable!(organisation -> account (admin_account));
 joinable!(organisation_account -> account (account));
 joinable!(organisation_account -> account_role (account_role));
@@ -51,6 +63,7 @@ joinable!(organisation_account -> organisation (organisation));
 allow_tables_to_appear_in_same_query!(
     account,
     account_role,
+    appliance,
     organisation,
     organisation_account,
 );
