@@ -6,6 +6,7 @@ extern crate serde;
 extern crate failure;
 
 mod account;
+mod appliance;
 mod auth;
 mod cache;
 mod db;
