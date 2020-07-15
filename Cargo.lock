@@ -660,6 +660,7 @@ dependencies = [
  "diesel_derives",
  "pq-sys",
  "r2d2",
+ "uuid 0.8.1",
 ]
 
 [[package]]
