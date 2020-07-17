@@ -6,7 +6,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.route("", web::post().to(super::handler::create_account))
         .service(
             web::resource("/{id}")
-                .wrap(RequireAuthentication)
+                .wrap(RequireAuthentication::new())
                 .route(web::get().to(super::handler::get_account)),
         );
 }

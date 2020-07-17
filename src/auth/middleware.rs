@@ -12,6 +12,8 @@ use futures::{
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use super::AuthenticationDetails;
+
 pub fn default() -> IdentityService<CookieIdentityPolicy> {
     IdentityService::new(
         CookieIdentityPolicy::new(
@@ -23,7 +25,21 @@ pub fn default() -> IdentityService<CookieIdentityPolicy> {
     )
 }
 
-pub struct RequireAuthentication;
+pub struct RequireAuthentication {
+    validate: fn(AuthenticationDetails) -> bool,
+}
+
+impl Default for RequireAuthentication {
+    fn default() -> RequireAuthentication {
+        RequireAuthentication { validate: |_| true }
+    }
+}
+
+impl RequireAuthentication {
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
 
 impl<S, B> Transform<S> for RequireAuthentication
 where
@@ -43,12 +59,16 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(RequireAuthenticationMiddleware { service })
+        ok(RequireAuthenticationMiddleware {
+            service,
+            validate: self.validate,
+        })
     }
 }
 
 pub struct RequireAuthenticationMiddleware<S> {
     service: S,
+    validate: fn(AuthenticationDetails) -> bool,
 }
 
 impl<S, B> Service for RequireAuthenticationMiddleware<S>
@@ -75,14 +95,16 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        if let Ok(_) =
-            super::AuthenticationDetails::from_identity(req.get_identity())
+        if let Ok(authentication_details) =
+            AuthenticationDetails::from_identity(req.get_identity())
         {
-            let fut = self.service.call(req);
-            return Box::pin(async move {
-                let res = fut.await?;
-                Ok(res)
-            });
+            if (self.validate)(authentication_details) {
+                let fut = self.service.call(req);
+                return Box::pin(async move {
+                    let res = fut.await?;
+                    Ok(res)
+                });
+            }
         };
 
         Box::pin(async move {
