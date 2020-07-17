@@ -12,8 +12,6 @@ use futures::{
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::auth::decode_jwt;
-
 pub fn default() -> IdentityService<CookieIdentityPolicy> {
     IdentityService::new(
         CookieIdentityPolicy::new(
@@ -77,19 +75,20 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        let auth_token = req.get_identity().unwrap_or("".to_string());
-        if let Err(_) = decode_jwt(&auth_token) {
+        if let Ok(_) =
+            super::AuthenticationDetails::from_identity(req.get_identity())
+        {
+            let fut = self.service.call(req);
             return Box::pin(async move {
-                Ok(req.into_response(
-                    HttpResponse::Unauthorized().finish().into_body(),
-                ))
+                let res = fut.await?;
+                Ok(res)
             });
         };
 
-        let fut = self.service.call(req);
         Box::pin(async move {
-            let res = fut.await?;
-            Ok(res)
+            Ok(req.into_response(
+                HttpResponse::Unauthorized().finish().into_body(),
+            ))
         })
     }
 }
