@@ -69,23 +69,32 @@ pub struct AuthenticationDetails {
     pub account_id: i32,
 }
 
+impl AuthenticationDetails {
+    fn from_identity(identity: Option<String>) -> Result<Self, ApiError> {
+        if let Some(auth_token) = identity {
+            match decode_jwt(&auth_token) {
+                Ok(claim) => {
+                    return Ok(AuthenticationDetails {
+                        account_id: claim.account_id,
+                    })
+                }
+                Err(_) => return Err(ApiError::Unauthorized),
+            };
+        }
+        Err(ApiError::Unauthorized)
+    }
+}
+
 impl FromRequest for AuthenticationDetails {
     type Error = ApiError;
     type Future = Ready<Result<Self, Self::Error>>;
     type Config = ();
 
     fn from_request(req: &HttpRequest, _: &mut dev::Payload) -> Self::Future {
-        if let Some(auth_token) = req.get_identity() {
-            match decode_jwt(&auth_token) {
-                Ok(claim) => {
-                    return ok(AuthenticationDetails {
-                        account_id: claim.account_id,
-                    })
-                }
-                Err(_) => return err(ApiError::Unauthorized),
-            };
+        match AuthenticationDetails::from_identity(req.get_identity()) {
+            Ok(authentication_details) => return ok(authentication_details),
+            Err(e) => return err(e),
         }
-        err(ApiError::Unauthorized)
     }
 }
 
