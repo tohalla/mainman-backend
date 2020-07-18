@@ -25,19 +25,30 @@ pub fn default() -> IdentityService<CookieIdentityPolicy> {
     )
 }
 
+#[derive(Debug, Deserialize)]
+pub struct PathInfo {
+    pub account_id: Option<i32>,
+    pub organisation_id: Option<i32>,
+}
+
+impl Default for PathInfo {
+    fn default() -> PathInfo {
+        PathInfo {
+            account_id: None,
+            organisation_id: None,
+        }
+    }
+}
+
 pub struct RequireAuthentication {
-    validate: fn(AuthenticationDetails) -> bool,
+    pub validate: fn(PathInfo, AuthenticationDetails) -> bool,
 }
 
 impl Default for RequireAuthentication {
     fn default() -> RequireAuthentication {
-        RequireAuthentication { validate: |_| true }
-    }
-}
-
-impl RequireAuthentication {
-    pub fn new() -> Self {
-        Default::default()
+        RequireAuthentication {
+            validate: |_, _| true,
+        }
     }
 }
 
@@ -68,7 +79,7 @@ where
 
 pub struct RequireAuthenticationMiddleware<S> {
     service: S,
-    validate: fn(AuthenticationDetails) -> bool,
+    validate: fn(PathInfo, AuthenticationDetails) -> bool,
 }
 
 impl<S, B> Service for RequireAuthenticationMiddleware<S>
@@ -98,7 +109,12 @@ where
         if let Ok(authentication_details) =
             AuthenticationDetails::from_identity(req.get_identity())
         {
-            if (self.validate)(authentication_details) {
+            if (self.validate)(
+                req.match_info()
+                    .load::<PathInfo>()
+                    .unwrap_or(PathInfo::default()),
+                authentication_details,
+            ) {
                 let fut = self.service.call(req);
                 return Box::pin(async move {
                     let res = fut.await?;
