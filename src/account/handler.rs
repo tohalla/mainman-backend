@@ -48,9 +48,9 @@ pub async fn create_account(
 
 pub async fn get_account(
     pool: Data<Pool>,
-    id: Path<i32>,
+    account_id: Path<i32>,
 ) -> Result<Json<AccountResponse>, ApiError> {
-    let account = block(move || find(&pool, *id)).await?;
+    let account = block(move || find(&pool, *account_id)).await?;
     Ok(Json(account))
 }
 
