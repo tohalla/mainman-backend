@@ -6,11 +6,9 @@ use crate::auth::middleware::RequireAuthentication;
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("")
-            .wrap(RequireAuthentication::default())
-            .route("", web::get().to(super::handler::get_organisations))
-            .route("", web::post().to(super::handler::create_organisation))
             .service(
                 web::scope("/{organisation_id}")
+                    .wrap(RequireAuthentication::default())
                     .route("", web::get().to(super::handler::get_organisation))
                     .route(
                         "",

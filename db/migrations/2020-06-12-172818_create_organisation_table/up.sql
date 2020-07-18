@@ -20,7 +20,7 @@ CREATE TABLE account_role (
 );
 
 CREATE TABLE organisation_account (
-  uuid UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id SERIAL PRIMARY KEY,
   account INTEGER NOT NULL REFERENCES account (id) ON DELETE CASCADE,
   organisation INTEGER NOT NULL REFERENCES organisation (id) ON DELETE CASCADE,
   account_role INTEGER NOT NULL REFERENCES account_role (id) ON DELETE SET NULL

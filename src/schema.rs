@@ -45,8 +45,8 @@ table! {
 }
 
 table! {
-    organisation_account (uuid) {
-        uuid -> Uuid,
+    organisation_account (id) {
+        id -> Int4,
         account -> Int4,
         organisation -> Int4,
         account_role -> Int4,
