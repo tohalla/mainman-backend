@@ -1,14 +1,15 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
+use crate::account::Account;
 use crate::db::Pool;
 use crate::error::ApiError;
-use crate::schema::organisation;
+use crate::schema::{organisation, organisation_account};
 
 pub mod handler;
 pub mod routes;
 
-#[derive(Debug, Serialize, Deserialize, Queryable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Associations)]
 pub struct Organisation {
     pub id: i32,
     pub created_at: NaiveDateTime,
@@ -17,6 +18,17 @@ pub struct Organisation {
     pub organisation_identifier: Option<String>,
     pub locale: String,
     pub admin_account: i32,
+}
+
+#[derive(Identifiable, Queryable, Associations)]
+#[table_name = "organisation_account"]
+#[belongs_to(Account, foreign_key = "account")]
+#[belongs_to(Organisation, foreign_key = "organisation")]
+pub struct OrganisationAccount {
+    pub id: i32,
+    pub organisation: i32,
+    pub account: i32,
+    pub account_role: i32,
 }
 
 #[derive(Debug, Deserialize, Insertable)]

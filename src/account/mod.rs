@@ -8,7 +8,7 @@ use crate::schema::account;
 pub mod handler;
 pub mod routes;
 
-#[derive(Debug, Serialize, Deserialize, Queryable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Associations)]
 pub struct Account {
     pub id: i32,
     pub created_at: NaiveDateTime,

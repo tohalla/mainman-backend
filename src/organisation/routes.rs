@@ -18,6 +18,9 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                         web::scope("/appliances")
                             .configure(appliance::routes::routes),
                     ),
-            ),
+            )
+            .wrap(RequireAuthentication::default())
+            .route("", web::get().to(super::handler::get_organisations))
+            .route("", web::post().to(super::handler::create_organisation)),
     );
 }
