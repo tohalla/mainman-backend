@@ -3,7 +3,7 @@ CREATE TABLE maintainer (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP,
   organisation INTEGER NOT NULL REFERENCES organisation (id) ON DELETE CASCADE,
-  account INTEGER NOT NULL REFERENCES account (id),
+  account INTEGER REFERENCES account (id),
   details JSONB
 );
 

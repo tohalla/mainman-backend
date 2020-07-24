@@ -38,7 +38,7 @@ table! {
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         organisation -> Int4,
-        account -> Int4,
+        account -> Nullable<Int4>,
         details -> Nullable<Jsonb>,
     }
 }
