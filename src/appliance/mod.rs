@@ -21,9 +21,9 @@ pub struct Appliance {
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "appliance"]
-pub struct CreateAppliance {
-    name: String,
-    description: Option<String>,
+pub struct CreateAppliance<'a> {
+    name: &'a str,
+    description: &'a str,
     organisation: i32,
 }
 
@@ -64,7 +64,7 @@ pub fn get_all(
 
 pub fn create(
     pool: &Pool,
-    payload: CreateAppliance,
+    payload: &CreateAppliance,
 ) -> Result<Appliance, ApiError> {
     use crate::schema::appliance::dsl::*;
 

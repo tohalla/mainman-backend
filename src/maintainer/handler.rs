@@ -3,11 +3,11 @@ use actix_web::web::{block, Data, Json, Path};
 use super::*;
 use crate::db::Pool;
 use crate::error::ApiError;
+use serde_json;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateMaintainerPayload {
-    name: String,
-    description: Option<String>,
+    details: Option<serde_json::Value>,
 }
 
 pub async fn get_maintainer(
@@ -28,15 +28,16 @@ pub async fn get_maintainers(
 
 pub async fn create_maintainer(
     pool: Data<Pool>,
-    payload: Json<CreateMaintainer>,
+    payload: Json<CreateMaintainerPayload>,
     organisation: Path<i32>,
 ) -> Result<Json<Maintainer>, ApiError> {
     let maintainer = block(move || {
         create(
             &pool,
-            CreateMaintainer {
+            &CreateMaintainer {
                 organisation: *organisation,
-                ..payload.into_inner()
+                account: None,
+                details: payload.details.clone().unwrap_or(json!({})),
             },
         )
     })

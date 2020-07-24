@@ -29,15 +29,16 @@ pub async fn get_appliances(
 
 pub async fn create_appliance(
     pool: Data<Pool>,
-    payload: Json<CreateAppliance>,
+    payload: Json<CreateAppliancePayload>,
     organisation: Path<i32>,
 ) -> Result<Json<Appliance>, ApiError> {
     let appliance = block(move || {
         create(
             &pool,
-            CreateAppliance {
+            &CreateAppliance {
                 organisation: *organisation,
-                ..payload.into_inner()
+                name: &payload.name,
+                description: &payload.description.as_deref().unwrap_or(""),
             },
         )
     })

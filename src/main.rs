@@ -4,6 +4,8 @@ extern crate diesel;
 extern crate serde;
 #[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate serde_json;
 
 mod account;
 mod appliance;

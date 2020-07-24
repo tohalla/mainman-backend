@@ -24,7 +24,7 @@ pub struct Maintainer {
 pub struct CreateMaintainer {
     account: Option<i32>,
     organisation: i32,
-    details: Option<serde_json::Value>,
+    details: serde_json::Value,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
@@ -64,7 +64,7 @@ pub fn get_all(
 
 pub fn create(
     pool: &Pool,
-    payload: CreateMaintainer,
+    payload: &CreateMaintainer,
 ) -> Result<Maintainer, ApiError> {
     use crate::schema::maintainer::dsl::*;
 
