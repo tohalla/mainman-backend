@@ -7,7 +7,7 @@ use crate::error::ApiError;
 #[derive(Debug, Deserialize)]
 pub struct CreateOrganisationPayload {
     name: String,
-    organisation_identifier: String,
+    organisation_identifier: Option<String>,
     locale: String,
 }
 
@@ -40,7 +40,10 @@ pub async fn create_organisation(
             CreateOrganisation {
                 admin_account: authentication_details.account_id,
                 name: &payload.name,
-                organisation_identifier: Some(&payload.organisation_identifier),
+                organisation_identifier: payload
+                    .organisation_identifier
+                    .as_deref()
+                    .unwrap_or(""),
                 locale: &payload.locale,
             },
         )
@@ -52,8 +55,17 @@ pub async fn create_organisation(
 pub async fn patch_organisation(
     pool: Data<Pool>,
     payload: Json<PatchOrganisation>,
+    organisation: Path<i32>,
 ) -> Result<Json<Organisation>, ApiError> {
-    let organisation =
-        block(move || patch(&pool, payload.into_inner())).await?;
-    Ok(Json(organisation))
+    let organisation_res = block(move || {
+        patch(
+            &pool,
+            &PatchOrganisation {
+                id: *organisation,
+                ..payload.into_inner()
+            },
+        )
+    })
+    .await?;
+    Ok(Json(organisation_res))
 }

@@ -35,7 +35,7 @@ pub struct OrganisationAccount {
 #[table_name = "organisation"]
 pub struct CreateOrganisation<'a> {
     name: &'a str,
-    organisation_identifier: Option<&'a str>,
+    organisation_identifier: &'a str,
     locale: &'a str,
     admin_account: i32,
 }
@@ -95,7 +95,7 @@ pub fn create(
 
 pub fn patch(
     pool: &Pool,
-    payload: PatchOrganisation,
+    payload: &PatchOrganisation,
 ) -> Result<Organisation, ApiError> {
     use crate::schema::organisation::dsl::*;
 
