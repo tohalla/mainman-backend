@@ -21,10 +21,18 @@ pub struct Appliance {
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "appliance"]
-pub struct CreateAppliance<'a> {
-    name: &'a str,
-    description: Option<&'a str>,
+pub struct CreateAppliance {
+    name: String,
+    description: Option<String>,
     organisation: i32,
+}
+
+#[derive(Debug, Deserialize, AsChangeset)]
+#[table_name = "appliance"]
+pub struct PatchAppliance {
+    hash: uuid::Uuid,
+    name: Option<String>,
+    description: Option<String>,
 }
 
 pub fn find(pool: &Pool, hash: Uuid) -> Result<Appliance, ApiError> {
@@ -63,6 +71,20 @@ pub fn create(
     let conn = pool.get()?;
     let res = diesel::insert_into(appliance)
         .values(payload)
+        .get_result::<Appliance>(&conn)?;
+
+    Ok(res)
+}
+
+pub fn patch(
+    pool: &Pool,
+    payload: &PatchAppliance,
+) -> Result<Appliance, ApiError> {
+    use crate::schema::appliance::dsl::*;
+
+    let conn = pool.get()?;
+    let res = diesel::update(appliance.find(payload.hash))
+        .set(payload)
         .get_result::<Appliance>(&conn)?;
 
     Ok(res)

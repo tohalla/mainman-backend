@@ -8,7 +8,7 @@ use crate::error::ApiError;
 #[derive(Debug, Deserialize)]
 pub struct CreateAppliancePayload {
     name: String,
-    description: String,
+    description: Option<String>,
 }
 
 pub async fn get_appliance(
@@ -29,19 +29,36 @@ pub async fn get_appliances(
 
 pub async fn create_appliance(
     pool: Data<Pool>,
-    payload: Json<CreateAppliancePayload>,
+    payload: Json<CreateAppliance>,
     organisation: Path<i32>,
 ) -> Result<Json<Appliance>, ApiError> {
     let appliance = block(move || {
         create(
             &pool,
             CreateAppliance {
-                name: &payload.name,
-                description: Some(&payload.description),
                 organisation: *organisation,
+                ..payload.into_inner()
             },
         )
     })
     .await?;
     Ok(Json(appliance))
+}
+
+pub async fn patch_appliance(
+    pool: Data<Pool>,
+    payload: Json<PatchAppliance>,
+    appliance: Path<Uuid>,
+) -> Result<Json<Appliance>, ApiError> {
+    let appliance_res = block(move || {
+        patch(
+            &pool,
+            &PatchAppliance {
+                hash: *appliance,
+                ..payload.into_inner()
+            },
+        )
+    })
+    .await?;
+    Ok(Json(appliance_res))
 }
