@@ -12,6 +12,7 @@ mod cache;
 mod db;
 mod error;
 mod health;
+mod maintainer;
 mod organisation;
 mod routes;
 mod schema;

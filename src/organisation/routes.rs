@@ -2,6 +2,7 @@ use actix_web::web;
 
 use crate::appliance;
 use crate::auth::middleware::RequireAuthentication;
+use crate::maintainer;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -17,6 +18,10 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     .service(
                         web::scope("/appliances")
                             .configure(appliance::routes::routes),
+                    )
+                    .service(
+                        web::scope("/maintainers")
+                            .configure(maintainer::routes::routes),
                     ),
             )
             .wrap(RequireAuthentication::default())

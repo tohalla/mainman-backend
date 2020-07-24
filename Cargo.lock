@@ -660,6 +660,7 @@ dependencies = [
  "diesel_derives",
  "pq-sys",
  "r2d2",
+ "serde_json",
  "uuid 0.8.1",
 ]
 
@@ -1151,6 +1152,7 @@ dependencies = [
  "rand 0.7.3",
  "redis-async",
  "serde",
+ "serde_json",
  "uuid 0.8.1",
  "validator",
  "validator_derive",
