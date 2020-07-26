@@ -12,9 +12,9 @@ pub struct CreateMaintainerPayload {
 
 pub async fn get_maintainer(
     pool: Data<Pool>,
-    path: Path<(i32, i32)>,
+    maintainer_id: Path<i32>,
 ) -> Result<Json<Maintainer>, ApiError> {
-    let maintainer = block(move || find(&pool, path.1)).await?;
+    let maintainer = block(move || find(&pool, *maintainer_id)).await?;
     Ok(Json(maintainer))
 }
 

@@ -7,7 +7,7 @@ pub fn organisation_routes(cfg: &mut web::ServiceConfig) {
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::resource("/{id}")
+        web::resource("/{maintainer_id}")
             .route(web::get().to(super::handler::get_maintainer))
             .route(web::patch().to(super::handler::patch_maintainer)),
     );

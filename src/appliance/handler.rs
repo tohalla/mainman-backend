@@ -13,9 +13,9 @@ pub struct CreateAppliancePayload {
 
 pub async fn get_appliance(
     pool: Data<Pool>,
-    path: Path<(i32, Uuid)>,
+    hash: Path<Uuid>,
 ) -> Result<Json<Appliance>, ApiError> {
-    let appliance = block(move || find(&pool, path.1)).await?;
+    let appliance = block(move || find(&pool, *hash)).await?;
     Ok(Json(appliance))
 }
 
