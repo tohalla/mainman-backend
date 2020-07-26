@@ -17,11 +17,11 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     )
                     .service(
                         web::scope("/appliances")
-                            .configure(appliance::routes::routes),
+                            .configure(appliance::routes::organisation_routes),
                     )
                     .service(
                         web::scope("/maintainers")
-                            .configure(maintainer::routes::routes),
+                            .configure(maintainer::routes::organisation_routes),
                     ),
             )
             .wrap(RequireAuthentication::default())
