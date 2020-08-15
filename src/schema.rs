@@ -88,6 +88,16 @@ table! {
     }
 }
 
+table! {
+    refresh_token (token) {
+        created_at -> Nullable<Timestamp>,
+        expires_at -> Timestamp,
+        account -> Int4,
+        token -> Bytea,
+        authentication_token -> Nullable<Bytea>,
+    }
+}
+
 joinable!(account_role -> organisation (organisation));
 joinable!(appliance -> organisation (organisation));
 joinable!(maintainer -> account (account));
@@ -99,6 +109,7 @@ joinable!(organisation -> account (admin_account));
 joinable!(organisation_account -> account (account));
 joinable!(organisation_account -> account_role (account_role));
 joinable!(organisation_account -> organisation (organisation));
+joinable!(refresh_token -> account (account));
 
 allow_tables_to_appear_in_same_query!(
     account,
@@ -109,4 +120,5 @@ allow_tables_to_appear_in_same_query!(
     maintenance_task,
     organisation,
     organisation_account,
+    refresh_token,
 );
