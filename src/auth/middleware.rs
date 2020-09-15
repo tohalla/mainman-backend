@@ -1,6 +1,6 @@
-use actix_http::cookie::SameSite;
 use actix_identity::{CookieIdentityPolicy, IdentityService, RequestIdentity};
 use actix_service::{Service, Transform};
+use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     Error, HttpResponse,
@@ -152,33 +152,30 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        let mut service = self.service.clone();
-
         let path_info = req
             .match_info()
             .load::<PathInfo>()
             .unwrap_or(PathInfo::default());
         let pool = req.app_data::<Pool>().unwrap();
 
-        return Box::pin(async move {
-            if let Ok(authentication_details) =
-                AuthenticationDetails::from_identity(req.get_identity())
+        let mut service = self.service.clone();
+        if let Ok(authentication_details) = AuthenticationDetails::from_identity(
+            RequestIdentity::get_identity(&req),
+        ) {
+            if check_account(&authentication_details, &path_info)
+                && check_organisation(
+                    &pool,
+                    &authentication_details,
+                    &path_info,
+                )
+                .unwrap_or(false)
             {
-                if check_account(&authentication_details, &path_info)
-                    && check_organisation(
-                        &pool,
-                        &authentication_details,
-                        &path_info,
-                    )
-                    .unwrap_or(false)
-                {
-                    let res = service.call(req).await?;
-                    return Ok(res);
-                }
-            };
-            Ok(req.into_response(
-                HttpResponse::Unauthorized().finish().into_body(),
-            ))
-        });
+                return Box::pin(async move { Ok(service.call(req).await?) });
+            }
+        }
+
+        Box::pin(ok(req.into_response(
+            HttpResponse::Unauthorized().finish().into_body(),
+        )))
     }
 }

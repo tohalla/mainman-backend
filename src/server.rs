@@ -16,7 +16,7 @@ pub async fn start() -> std::io::Result<()> {
             .wrap(auth::middleware::default())
             .configure(super::cache::add_cache)
             .wrap(Cors::new().supports_credentials().finish())
-            .wrap(NormalizePath)
+            .wrap(NormalizePath::default())
             .wrap(Logger::default())
             .configure(super::routes::routes)
     });
