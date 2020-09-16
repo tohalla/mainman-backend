@@ -1,28 +1,20 @@
--- should not give permissions to emotiontracker_client for refresh tokens
+CREATE EXTENSION "pgcrypto";
+
 CREATE TABLE refresh_token (
   created_at TIMESTAMP DEFAULT NOW(),
-  expires_at TIMESTAMP NOT NULL,
   account INTEGER NOT NULL REFERENCES account (id) ON DELETE CASCADE,
-  token BYTEA PRIMARY KEY,
-  authentication_token BYTEA UNIQUE
+  token UUID PRIMARY KEY,
+  authentication_token TEXT UNIQUE
 );
-
-CREATE OR REPLACE FUNCTION generate_token(length INTEGER)
-RETURNS BYTEA AS $$
-  SELECT DECODE(
-    STRING_AGG(LPAD(TO_HEX(WIDTH_BUCKET(RANDOM(), 0, 1, 256) - 1), 2, '0'), ''),
-    'hex'
-  ) FROM GENERATE_SERIES(1, $1);
-; $$ LANGUAGE SQL VOLATILE;
 
 CREATE OR REPLACE FUNCTION generate_refresh_token(
   account INTEGER,
-  expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '7 days'
-) RETURNS BYTEA AS $$
-  DECLARE generated_token BYTEA;
+  authentication_token TEXT
+) RETURNS TEXT AS $$
+  DECLARE generated_token TEXT;
   BEGIN
-    INSERT INTO refresh_token(account, expires_at, token) VALUES
-      (account, expires_at, generate_token(512))
+    INSERT INTO refresh_token(account, token, authentication_token) VALUES
+      (account, gen_random_uuid(), authentication_token)
     RETURNING (token) INTO generated_token;
     RETURN generated_token;
   END;
@@ -30,14 +22,16 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION is_valid_refresh_token(
   account INTEGER,
-  token BYTEA
+  token UUID,
+  authentication_token TEXT
 ) RETURNS BOOLEAN AS $$
   DECLARE is_valid BOOLEAN;
   BEGIN
     SELECT EXISTS(
       SELECT 1 FROM refresh_token WHERE refresh_token.account = $1
-        AND refresh.token = $2
-        AND NOW() < refres_token.expires_at
+        AND refresh_token.token = $2
+        AND refresh_token.authentication_token = $3
+        AND NOW() < refresh_token.created_at + INTERVAL '7 days'
     ) INTO is_valid;
 
     -- Tokens should not be used multiple times
@@ -50,6 +44,10 @@ $$ LANGUAGE plpgsql;
 GRANT SELECT, INSERT, DELETE ON refresh_token TO mainman_client;
 
 GRANT EXECUTE ON FUNCTION
-  generate_refresh_token(account INTEGER, expires_at TIMESTAMP),
-  is_valid_refresh_token(account INTEGER, token BYTEA)
+  generate_refresh_token(account INTEGER, authentication_token TEXT),
+  is_valid_refresh_token(
+    account INTEGER,
+    token UUID,
+    authentication_token TEXT
+  )
   TO mainman_client;

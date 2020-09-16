@@ -91,10 +91,9 @@ table! {
 table! {
     refresh_token (token) {
         created_at -> Nullable<Timestamp>,
-        expires_at -> Timestamp,
         account -> Int4,
-        token -> Bytea,
-        authentication_token -> Nullable<Bytea>,
+        token -> Uuid,
+        authentication_token -> Nullable<Text>,
     }
 }
 
