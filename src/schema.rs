@@ -91,7 +91,7 @@ table! {
 table! {
     refresh_token (token) {
         created_at -> Nullable<Timestamp>,
-        account -> Int4,
+        account_id -> Int4,
         token -> Uuid,
         authentication_token -> Nullable<Text>,
     }
@@ -108,7 +108,7 @@ joinable!(organisation -> account (admin_account));
 joinable!(organisation_account -> account (account));
 joinable!(organisation_account -> account_role (account_role));
 joinable!(organisation_account -> organisation (organisation));
-joinable!(refresh_token -> account (account));
+joinable!(refresh_token -> account (account_id));
 
 allow_tables_to_appear_in_same_query!(
     account,
