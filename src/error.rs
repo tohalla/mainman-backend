@@ -50,6 +50,7 @@ impl ResponseError for ApiError {
 
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
+        error!("{:}", error);
         match error {
             DBError::DatabaseError(kind, info) => {
                 if let DatabaseErrorKind::UniqueViolation = kind {
@@ -67,13 +68,15 @@ impl From<DBError> for ApiError {
 }
 
 impl From<PoolError> for ApiError {
-    fn from(_: PoolError) -> ApiError {
+    fn from(error: PoolError) -> ApiError {
+        error!("{:}", error);
         ApiError::PoolError
     }
 }
 
 impl From<BlockingError<ApiError>> for ApiError {
     fn from(error: BlockingError<ApiError>) -> ApiError {
+        error!("{:}", error);
         match error {
             BlockingError::Error(api_error) => api_error,
             BlockingError::Canceled => ApiError::BlockingError,
@@ -82,13 +85,15 @@ impl From<BlockingError<ApiError>> for ApiError {
 }
 
 impl From<BcryptError> for ApiError {
-    fn from(_: BcryptError) -> ApiError {
+    fn from(error: BcryptError) -> ApiError {
+        error!("{:}", error);
         ApiError::BlockingError
     }
 }
 
 impl From<std::str::Utf8Error> for ApiError {
-    fn from(_: std::str::Utf8Error) -> ApiError {
+    fn from(error: std::str::Utf8Error) -> ApiError {
+        error!("{:}", error);
         ApiError::EncodingError
     }
 }

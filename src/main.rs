@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate actix_web;
+#[macro_use]
 extern crate diesel;
 #[macro_use]
 extern crate serde;
@@ -6,6 +8,8 @@ extern crate serde;
 extern crate failure;
 #[macro_use]
 extern crate serde_json;
+#[macro_use]
+extern crate log;
 
 mod account;
 mod appliance;
@@ -20,8 +24,9 @@ mod routes;
 mod schema;
 mod server;
 
-#[actix_rt::main]
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init();
     dotenv::dotenv().ok();
     server::start().await
 }

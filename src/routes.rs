@@ -8,7 +8,7 @@ use crate::maintainer;
 use crate::organisation;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("/health", web::get().to(get_health)).service(
+    cfg.service(get_health).service(
         web::scope("/api/v1")
             .service(web::scope("/accounts").configure(account::routes::routes))
             .service(
