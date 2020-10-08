@@ -1,4 +1,3 @@
-use actix_identity::{CookieIdentityPolicy, IdentityService, RequestIdentity};
 use actix_service::{Service, Transform};
 use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{
@@ -18,17 +17,6 @@ use std::task::{Context, Poll};
 use super::AuthenticationDetails;
 use crate::db::Pool;
 use crate::schema::{organisation, organisation_account};
-
-pub fn default() -> IdentityService<CookieIdentityPolicy> {
-    IdentityService::new(
-        CookieIdentityPolicy::new(
-            std::env::var("SESSION_KEY").unwrap().as_ref(),
-        )
-        .name("authorization")
-        .same_site(SameSite::Strict)
-        .secure(false),
-    )
-}
 
 #[derive(Debug, Deserialize)]
 pub struct PathInfo {
