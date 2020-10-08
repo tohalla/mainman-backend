@@ -1,5 +1,5 @@
 use actix_web::{
-    cookie::{Cookie, SameSite},
+    cookie::{Cookie, CookieBuilder, SameSite},
     dev, FromRequest, HttpMessage, HttpRequest, Result,
 };
 use bcrypt::verify;
@@ -88,12 +88,17 @@ pub fn create_authentication_tokens(
     };
 
     Ok((
-        Cookie::build("authorization", authentication_token.clone())
-            .same_site(SameSite::Strict)
-            .http_only(true)
-            .finish(),
+        decorate_cookie(Cookie::build(
+            "authorization",
+            authentication_token.clone(),
+        ))
+        .finish(),
         create_refresh_token(&pool, account_id, authentication_token.clone())?,
     ))
+}
+
+fn decorate_cookie(cookie: CookieBuilder) -> CookieBuilder {
+    cookie.same_site(SameSite::Strict).http_only(true).path("/")
 }
 
 fn create_refresh_token(
@@ -115,10 +120,7 @@ fn create_refresh_token(
         None => "".to_string(),
     };
 
-    Ok(Cookie::build("refresh-token", account_id)
-        .same_site(SameSite::Strict)
-        .http_only(true)
-        .finish())
+    Ok(decorate_cookie(Cookie::build("refresh-token", account_id)).finish())
 }
 
 pub fn validate_refresh_token(

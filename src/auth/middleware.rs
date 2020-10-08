@@ -1,8 +1,8 @@
 use actix_service::{Service, Transform};
-use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
-    Error, HttpResponse,
+    web::Data,
+    Error, HttpMessage, HttpResponse,
 };
 use diesel::prelude::*;
 use futures::{
@@ -16,6 +16,7 @@ use std::task::{Context, Poll};
 
 use super::AuthenticationDetails;
 use crate::db::Pool;
+use crate::error::ApiError;
 use crate::schema::{organisation, organisation_account};
 
 #[derive(Debug, Deserialize)]
@@ -76,11 +77,21 @@ pub struct RequireAuthenticationMiddleware<'a, S> {
     require_permissions: Option<&'a [&'a str]>,
 }
 
+fn check_access(
+    pool: &Pool,
+    authentication_details: &AuthenticationDetails,
+    path_info: &PathInfo,
+) -> Result<bool, ApiError> {
+    check_account(&authentication_details, &path_info).and_then(|_| {
+        check_organisation(&pool, &authentication_details, &path_info)
+    })
+}
+
 fn check_organisation(
     pool: &Pool,
     authentication_details: &AuthenticationDetails,
     path_info: &PathInfo,
-) -> Result<bool, Error> {
+) -> Result<bool, ApiError> {
     match path_info.organisation_id {
         Some(organisation_id) => {
             let conn = pool.get().unwrap();
@@ -98,9 +109,11 @@ fn check_organisation(
                 .select(organisation::admin_account)
                 .first::<i32>(&conn);
             if let Ok(admin_account) = admin_account {
-                return Ok(admin_account == authentication_details.account_id);
+                if admin_account != authentication_details.account_id {
+                    return Err(ApiError::Unauthorized);
+                }
             }
-            Ok(false)
+            Ok(true)
         }
         None => Ok(true),
     }
@@ -109,11 +122,13 @@ fn check_organisation(
 fn check_account(
     authentication_details: &AuthenticationDetails,
     path_info: &PathInfo,
-) -> bool {
+) -> Result<bool, ApiError> {
     if let Some(account_id) = path_info.account_id {
-        return authentication_details.account_id == account_id;
+        if authentication_details.account_id != account_id {
+            return Err(ApiError::Unauthorized);
+        }
     }
-    true
+    Ok(true)
 }
 
 impl<'a, S, B> Service for RequireAuthenticationMiddleware<'a, S>
@@ -144,26 +159,22 @@ where
             .match_info()
             .load::<PathInfo>()
             .unwrap_or(PathInfo::default());
-        let pool = req.app_data::<Pool>().unwrap();
+        let pool = req.app_data::<Data<Pool>>().unwrap();
 
         let mut service = self.service.clone();
-        if let Ok(authentication_details) = AuthenticationDetails::from_identity(
-            RequestIdentity::get_identity(&req),
-        ) {
-            if check_account(&authentication_details, &path_info)
-                && check_organisation(
-                    &pool,
-                    &authentication_details,
-                    &path_info,
-                )
-                .unwrap_or(false)
-            {
-                return Box::pin(async move { Ok(service.call(req).await?) });
-            }
-        }
+        let authentication_token = req
+            .cookie("authorization")
+            .map(|cookie| cookie.value().to_string());
 
-        Box::pin(ok(req.into_response(
-            HttpResponse::Unauthorized().finish().into_body(),
-        )))
+        match AuthenticationDetails::from_identity(authentication_token).map(
+            |authentication_details| {
+                check_access(&pool, &authentication_details, &path_info)
+            },
+        ) {
+            Ok(_) => Box::pin(async move { Ok(service.call(req).await?) }),
+            Err(_) => Box::pin(ok(req.into_response(
+                HttpResponse::Unauthorized().finish().into_body(),
+            ))),
+        }
     }
 }
