@@ -96,7 +96,7 @@ fn check_organisation(
         Some(organisation_id) => {
             let conn = pool.get().unwrap();
             let admin_account = organisation::dsl::organisation
-                .left_join(
+                .inner_join(
                     organisation_account::table.on(
                         organisation_account::organisation
                             .eq(organisation_id)
@@ -109,11 +109,11 @@ fn check_organisation(
                 .select(organisation::admin_account)
                 .first::<i32>(&conn);
             if let Ok(admin_account) = admin_account {
-                if admin_account != authentication_details.account_id {
-                    return Err(ApiError::Unauthorized);
+                if admin_account == authentication_details.account_id {
+                    return Ok(true);
                 }
             }
-            Ok(true)
+            Err(ApiError::Unauthorized)
         }
         None => Ok(true),
     }
@@ -165,12 +165,10 @@ where
         let authentication_token = req
             .cookie("authorization")
             .map(|cookie| cookie.value().to_string());
-
-        match AuthenticationDetails::from_identity(authentication_token).map(
-            |authentication_details| {
+        match AuthenticationDetails::from_identity(authentication_token)
+            .and_then(|authentication_details| {
                 check_access(&pool, &authentication_details, &path_info)
-            },
-        ) {
+            }) {
             Ok(_) => Box::pin(async move { Ok(service.call(req).await?) }),
             Err(_) => Box::pin(ok(req.into_response(
                 HttpResponse::Unauthorized().finish().into_body(),
