@@ -11,6 +11,7 @@ pub struct CreateAppliancePayload {
     description: Option<String>,
 }
 
+#[get("/{hash}")]
 pub async fn get_appliance(
     pool: Data<Pool>,
     hash: Path<Uuid>,
@@ -46,16 +47,17 @@ pub async fn create_appliance(
     Ok(Json(appliance))
 }
 
+#[patch("/{hash}")]
 pub async fn patch_appliance(
     pool: Data<Pool>,
     payload: Json<PatchAppliance>,
-    appliance: Path<Uuid>,
+    hash: Path<Uuid>,
 ) -> Result<Json<Appliance>, ApiError> {
     let appliance_res = block(move || {
         patch(
             &pool,
             &PatchAppliance {
-                hash: *appliance,
+                hash: *hash,
                 ..payload.into_inner()
             },
         )

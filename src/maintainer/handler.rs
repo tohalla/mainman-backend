@@ -10,6 +10,7 @@ pub struct CreateMaintainerPayload {
     details: Option<serde_json::Value>,
 }
 
+#[get("/{maintainer_id}")]
 pub async fn get_maintainer(
     pool: Data<Pool>,
     maintainer_id: Path<i32>,
@@ -45,6 +46,7 @@ pub async fn create_maintainer(
     Ok(Json(maintainer))
 }
 
+#[patch("/{maintainer_id}")]
 pub async fn patch_maintainer(
     pool: Data<Pool>,
     payload: Json<PatchMaintainer>,
