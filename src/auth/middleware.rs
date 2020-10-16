@@ -96,7 +96,7 @@ fn check_organisation(
         Some(organisation_id) => {
             let conn = pool.get().unwrap();
             let admin_account = organisation::dsl::organisation
-                .inner_join(
+                .left_join(
                     organisation_account::table.on(
                         organisation_account::organisation
                             .eq(organisation_id)
