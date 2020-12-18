@@ -1,15 +1,17 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde_json;
+use uuid::Uuid;
 
+use crate::appliance::Appliance;
 use crate::db::Pool;
 use crate::error::ApiError;
-use crate::schema::maintainer;
+use crate::schema::{maintainer, maintainer_appliance};
 
 pub mod handler;
 pub mod routes;
 
-#[derive(Debug, Serialize, Deserialize, Queryable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Associations)]
 pub struct Maintainer {
     pub id: i32,
     pub created_at: NaiveDateTime,
@@ -17,6 +19,15 @@ pub struct Maintainer {
     pub organisation: i32,
     pub account: Option<i32>,
     pub details: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Queryable, Associations)]
+#[table_name = "maintainer_appliance"]
+#[belongs_to(Maintainer, foreign_key = "maintainer")]
+#[belongs_to(Appliance, foreign_key = "appliance")]
+pub struct MaintainerAppliance {
+    pub maintainer: i32,
+    pub appliance: Uuid,
 }
 
 #[derive(Debug, Deserialize, Insertable)]

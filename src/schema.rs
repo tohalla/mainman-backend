@@ -44,6 +44,13 @@ table! {
 }
 
 table! {
+    maintainer_appliance (appliance, maintainer) {
+        appliance -> Uuid,
+        maintainer -> Int4,
+    }
+}
+
+table! {
     maintenance_event (id) {
         id -> Int4,
         created_at -> Timestamp,
@@ -101,6 +108,8 @@ joinable!(account_role -> organisation (organisation));
 joinable!(appliance -> organisation (organisation));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
+joinable!(maintainer_appliance -> appliance (appliance));
+joinable!(maintainer_appliance -> maintainer (maintainer));
 joinable!(maintenance_event -> appliance (appliance));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));
@@ -115,6 +124,7 @@ allow_tables_to_appear_in_same_query!(
     account_role,
     appliance,
     maintainer,
+    maintainer_appliance,
     maintenance_event,
     maintenance_task,
     organisation,

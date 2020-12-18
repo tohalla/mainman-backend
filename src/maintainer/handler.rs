@@ -46,7 +46,7 @@ pub async fn create_maintainer(
     Ok(Json(maintainer))
 }
 
-#[patch("/{maintainer_id}")]
+#[get("/{maintainer_id}")]
 pub async fn patch_maintainer(
     pool: Data<Pool>,
     payload: Json<PatchMaintainer>,

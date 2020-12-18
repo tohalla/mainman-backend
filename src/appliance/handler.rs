@@ -11,7 +11,7 @@ pub struct CreateAppliancePayload {
     description: Option<String>,
 }
 
-#[get("/{hash}")]
+#[get("{hash}")]
 pub async fn get_appliance(
     pool: Data<Pool>,
     hash: Path<Uuid>,
@@ -47,7 +47,7 @@ pub async fn create_appliance(
     Ok(Json(appliance))
 }
 
-#[patch("/{hash}")]
+#[patch("{hash}")]
 pub async fn patch_appliance(
     pool: Data<Pool>,
     payload: Json<PatchAppliance>,
