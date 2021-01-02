@@ -1,11 +1,11 @@
 use actix_web::{
     cookie::Cookie,
-    web::{block, Data, Json},
+    web::{Data, Json},
     HttpMessage, HttpRequest, HttpResponse,
 };
 use uuid::Uuid;
 
-use crate::{account, db::Pool, error::Error, MainmanResult};
+use crate::{account::Account, db::Pool, error::Error, MainmanResult};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AuthPayload {
@@ -71,11 +71,11 @@ pub async fn refresh_session(
 pub async fn get_account(
     pool: Data<Pool>,
     authentication_details: super::AuthenticationDetails,
-) -> MainmanResult<Json<account::handler::AccountResponse>> {
-    let account =
-        block(move || account::find(&pool, authentication_details.account_id))
-            .await?;
-    Ok(Json(account))
+) -> MainmanResult<Json<Account>> {
+    Ok(Json(Account::get(
+        authentication_details.account_id,
+        &pool.get()?,
+    )?))
 }
 
 #[delete("")]

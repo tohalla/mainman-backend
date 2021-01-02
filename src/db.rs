@@ -1,6 +1,8 @@
 use diesel::{pg::PgConnection, r2d2};
 
-pub type Pool = r2d2::Pool<r2d2::ConnectionManager<PgConnection>>;
+type ConnectionManager = r2d2::ConnectionManager<PgConnection>;
+pub type Pool = r2d2::Pool<ConnectionManager>;
+pub type Connection = r2d2::PooledConnection<ConnectionManager>;
 
 pub fn get_pool() -> Pool {
     r2d2::Pool::builder()

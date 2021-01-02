@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{db::Pool, schema::account, MainmanResult};
+use crate::{db::Connection, schema::account, MainmanResult};
 
 pub mod handler;
 pub mod routes;
@@ -14,45 +14,29 @@ pub struct Account {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub email: String,
+    #[serde(skip)]
     pub password: Vec<u8>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "account"]
-pub struct CreateAccount<'a> {
+pub struct NewAccount<'a> {
     first_name: &'a str,
     last_name: &'a str,
     email: &'a str,
     password: &'a [u8],
 }
 
-#[derive(Debug, Serialize, Deserialize, AsChangeset)]
-#[table_name = "account"]
-pub struct UpdateAccount<'a> {
-    first_name: &'a str,
-    last_name: &'a str,
-    email: &'a str,
+impl Account {
+    pub fn get(id: i32, conn: &Connection) -> MainmanResult<Self> {
+        Ok(account::dsl::account.find(id).first::<Account>(conn)?)
+    }
 }
 
-pub fn find(
-    pool: &Pool,
-    account_id: i32,
-) -> MainmanResult<handler::AccountResponse> {
-    use crate::schema::account::dsl::*;
-    Ok(account
-        .find(account_id)
-        .first::<Account>(&pool.get()?)?
-        .into())
-}
-
-pub fn create(
-    pool: &Pool,
-    new_account: CreateAccount,
-) -> MainmanResult<handler::AccountResponse> {
-    use crate::schema::account::dsl::*;
-
-    Ok(diesel::insert_into(account)
-        .values(new_account)
-        .get_result::<Account>(&pool.get()?)?
-        .into())
+impl<'a> NewAccount<'a> {
+    pub fn insert(&self, conn: &Connection) -> MainmanResult<Account> {
+        Ok(diesel::insert_into(account::dsl::account)
+            .values(self)
+            .get_result::<Account>(conn)?)
+    }
 }

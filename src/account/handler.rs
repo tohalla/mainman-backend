@@ -1,64 +1,37 @@
-use actix_web::{
-    error::ErrorBadRequest,
-    web::{block, Data, Json, Path},
-    Error,
-};
+use actix_web::web::{Data, Json, Path};
 use bcrypt::{hash, DEFAULT_COST};
-
-use super::{create, find, Account, CreateAccount};
-use crate::{db::Pool, MainmanResult};
 use heck::TitleCase;
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
-pub struct AccountResponse {
-    pub id: i32,
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub email: String,
-}
+use super::{Account, NewAccount};
+use crate::{db::Pool, MainmanResult};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CreateAccountPayload {
+#[derive(Clone, Debug, Deserialize)]
+pub struct NewAccountPayload {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
     pub password: String,
 }
 
+#[post("")]
 pub async fn create_account(
     pool: Data<Pool>,
-    payload: Json<CreateAccountPayload>,
-) -> MainmanResult<Json<AccountResponse>> {
-    let account = block(move || {
-        create(
-            &pool,
-            CreateAccount {
-                email: &payload.email,
-                first_name: &payload.first_name.to_title_case(),
-                last_name: &payload.last_name.to_title_case(),
-                password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
-            },
-        )
-    })
-    .await?;
-    Ok(Json(account))
+    payload: Json<NewAccountPayload>,
+) -> MainmanResult<Json<Account>> {
+    Ok(Json(
+        NewAccount {
+            email: &payload.email,
+            first_name: &payload.first_name.to_title_case(),
+            last_name: &payload.last_name.to_title_case(),
+            password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
+        }
+        .insert(&pool.get()?)?,
+    ))
 }
 
 pub async fn get_account(
     pool: Data<Pool>,
     account_id: Path<i32>,
-) -> MainmanResult<Json<AccountResponse>> {
-    let account = block(move || find(&pool, *account_id)).await?;
-    Ok(Json(account))
-}
-
-impl From<Account> for AccountResponse {
-    fn from(account: Account) -> Self {
-        AccountResponse {
-            id: account.id,
-            first_name: account.first_name,
-            last_name: account.last_name,
-            email: account.email,
-        }
-    }
+) -> MainmanResult<Json<Account>> {
+    Ok(Json(Account::get(*account_id, &pool.get()?)?))
 }
