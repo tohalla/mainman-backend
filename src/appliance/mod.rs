@@ -2,9 +2,7 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::db::Pool;
-use crate::error::ApiError;
-use crate::schema::appliance;
+use crate::{db::Pool, error::Error, schema::appliance, MainmanResult};
 
 pub mod handler;
 pub mod routes;
@@ -35,29 +33,22 @@ pub struct PatchAppliance {
     description: Option<String>,
 }
 
-pub fn find(pool: &Pool, hash: Uuid) -> Result<Appliance, ApiError> {
+pub fn find(pool: &Pool, hash: Uuid) -> MainmanResult<Appliance> {
     use crate::schema::appliance::dsl;
-
-    let conn = pool.get()?;
-    let res = dsl::appliance
-        .find(hash)
-        .first::<Appliance>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
-
-    Ok(res)
+    Ok(dsl::appliance.find(hash).first::<Appliance>(&pool.get()?)?)
 }
 
 pub fn get_all(
     pool: &Pool,
     organisation: i32,
-) -> Result<Vec<Appliance>, ApiError> {
+) -> MainmanResult<Vec<Appliance>> {
     use crate::schema::appliance::dsl;
 
     let conn = pool.get()?;
     let res = dsl::appliance
         .filter(dsl::organisation.eq(organisation))
         .load::<Appliance>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
+        .map_err(|_| Error::NotFoundError)?;
 
     Ok(res)
 }
@@ -65,7 +56,7 @@ pub fn get_all(
 pub fn create(
     pool: &Pool,
     payload: &CreateAppliance,
-) -> Result<Appliance, ApiError> {
+) -> MainmanResult<Appliance> {
     use crate::schema::appliance::dsl::*;
 
     let conn = pool.get()?;
@@ -79,7 +70,7 @@ pub fn create(
 pub fn patch(
     pool: &Pool,
     payload: &PatchAppliance,
-) -> Result<Appliance, ApiError> {
+) -> MainmanResult<Appliance> {
     use crate::schema::appliance::dsl::*;
 
     let conn = pool.get()?;

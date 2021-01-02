@@ -5,33 +5,21 @@ use actix_web::{
     HttpResponse,
 };
 use bcrypt::BcryptError;
-use diesel::{
-    r2d2::PoolError,
-    result::{DatabaseErrorKind, Error as DBError},
-};
-use failure::Fail;
+use diesel::{r2d2::PoolError, result::Error as DieselError};
+use jsonwebtoken;
+use std::io::{self};
 
-#[derive(Fail, Debug, PartialEq)]
-pub enum ApiError {
-    #[fail(display = "Internal server error")]
-    InternalServerError,
-    #[fail(display = "Bad request {}", _0)]
-    BadRequest(String),
-    #[fail(display = "")]
-    BlockingError,
-    #[fail(display = "")]
-    NotFound,
-    #[fail(display = "")]
-    PoolError,
-    #[fail(display = "")]
-    Unauthorized,
-    #[fail(display = "")]
-    EncodingError,
-    #[fail(display = "")]
-    ValidationError,
+#[derive(Debug)]
+pub enum Error {
+    NotFoundError,
+    UnauthorizedError,
+    BadRequestError,
+    IOError(io::Error),
+    EncodingError(String),
+    InternalServerError(Option<String>),
 }
 
-impl ResponseError for ApiError {
+impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         ResponseBuilder::new(self.status_code())
             .set_header(header::CONTENT_TYPE, "text/html; charset=utf-8")
@@ -40,60 +28,61 @@ impl ResponseError for ApiError {
 
     fn status_code(&self) -> StatusCode {
         match *self {
-            ApiError::Unauthorized => StatusCode::UNAUTHORIZED,
-            ApiError::ValidationError => StatusCode::BAD_REQUEST,
-            ApiError::NotFound => StatusCode::NOT_FOUND,
+            Error::NotFoundError => StatusCode::NOT_FOUND,
+            Error::UnauthorizedError => StatusCode::UNAUTHORIZED,
+            Error::BadRequestError => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
 
-impl From<DBError> for ApiError {
-    fn from(error: DBError) -> ApiError {
-        error!("{:}", error);
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl From<diesel::result::Error> for Error {
+    fn from(error: diesel::result::Error) -> Error {
         match error {
-            DBError::DatabaseError(kind, info) => {
-                if let DatabaseErrorKind::UniqueViolation = kind {
-                    let message = info
-                        .details()
-                        .unwrap_or_else(|| info.message())
-                        .to_string();
-                    return ApiError::BadRequest(message);
-                }
-                ApiError::InternalServerError
-            }
-            _ => ApiError::InternalServerError,
+            DieselError::DatabaseError(_, info) => Error::InternalServerError(
+                info.details().map(|details| details.to_owned()),
+            ),
+            DieselError::NotFound => Error::NotFoundError,
+            _ => Error::InternalServerError(None),
         }
     }
 }
 
-impl From<PoolError> for ApiError {
-    fn from(error: PoolError) -> ApiError {
-        error!("{:}", error);
-        ApiError::PoolError
+impl From<PoolError> for Error {
+    fn from(error: PoolError) -> Error {
+        Error::InternalServerError(Some(format!("{:}", error)))
     }
 }
 
-impl From<BlockingError<ApiError>> for ApiError {
-    fn from(error: BlockingError<ApiError>) -> ApiError {
-        error!("{:}", error);
+impl From<BlockingError<Error>> for Error {
+    fn from(error: BlockingError<Error>) -> Error {
         match error {
-            BlockingError::Error(api_error) => api_error,
-            BlockingError::Canceled => ApiError::BlockingError,
+            BlockingError::Error(error) => error,
+            BlockingError::Canceled => Error::InternalServerError(None),
         }
     }
 }
 
-impl From<BcryptError> for ApiError {
-    fn from(error: BcryptError) -> ApiError {
-        error!("{:}", error);
-        ApiError::BlockingError
+impl From<BcryptError> for Error {
+    fn from(error: BcryptError) -> Error {
+        Error::InternalServerError(Some(format!("{:}", error)))
     }
 }
 
-impl From<std::str::Utf8Error> for ApiError {
-    fn from(error: std::str::Utf8Error) -> ApiError {
-        error!("{:}", error);
-        ApiError::EncodingError
+impl From<std::str::Utf8Error> for Error {
+    fn from(error: std::str::Utf8Error) -> Error {
+        Error::EncodingError(format!("{:}", error))
+    }
+}
+
+impl From<jsonwebtoken::errors::Error> for Error {
+    fn from(error: jsonwebtoken::errors::Error) -> Error {
+        Error::EncodingError(format!("{:}", error))
     }
 }

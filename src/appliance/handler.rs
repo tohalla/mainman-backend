@@ -2,8 +2,7 @@ use actix_web::web::{block, Data, Json, Path};
 use uuid::Uuid;
 
 use super::*;
-use crate::db::Pool;
-use crate::error::ApiError;
+use crate::{db::Pool, MainmanResult};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateAppliancePayload {
@@ -15,7 +14,7 @@ pub struct CreateAppliancePayload {
 pub async fn get_appliance(
     pool: Data<Pool>,
     hash: Path<Uuid>,
-) -> Result<Json<Appliance>, ApiError> {
+) -> MainmanResult<Json<Appliance>> {
     let appliance = block(move || find(&pool, *hash)).await?;
     Ok(Json(appliance))
 }
@@ -23,7 +22,7 @@ pub async fn get_appliance(
 pub async fn get_appliances(
     pool: Data<Pool>,
     organisation: Path<i32>,
-) -> Result<Json<Vec<Appliance>>, ApiError> {
+) -> MainmanResult<Json<Vec<Appliance>>> {
     let appliance = block(move || get_all(&pool, *organisation)).await?;
     Ok(Json(appliance))
 }
@@ -32,7 +31,7 @@ pub async fn create_appliance(
     pool: Data<Pool>,
     payload: Json<CreateAppliancePayload>,
     organisation: Path<i32>,
-) -> Result<Json<Appliance>, ApiError> {
+) -> MainmanResult<Json<Appliance>> {
     let appliance = block(move || {
         create(
             &pool,
@@ -52,7 +51,7 @@ pub async fn patch_appliance(
     pool: Data<Pool>,
     payload: Json<PatchAppliance>,
     hash: Path<Uuid>,
-) -> Result<Json<Appliance>, ApiError> {
+) -> MainmanResult<Json<Appliance>> {
     let appliance_res = block(move || {
         patch(
             &pool,

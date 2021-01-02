@@ -2,7 +2,7 @@ use actix_web::web::{block, Data, Json, Path};
 
 use super::*;
 use crate::db::Pool;
-use crate::error::ApiError;
+use crate::error::Error;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateOrganisationPayload {
@@ -14,7 +14,7 @@ pub struct CreateOrganisationPayload {
 pub async fn get_organisation(
     pool: Data<Pool>,
     organisation: Path<i32>,
-) -> Result<Json<Organisation>, ApiError> {
+) -> Result<Json<Organisation>, Error> {
     let organisation = block(move || find(&pool, *organisation)).await?;
     Ok(Json(organisation))
 }
@@ -22,7 +22,7 @@ pub async fn get_organisation(
 pub async fn get_organisations(
     pool: Data<Pool>,
     authentication_details: crate::auth::AuthenticationDetails,
-) -> Result<Json<Vec<Organisation>>, ApiError> {
+) -> Result<Json<Vec<Organisation>>, Error> {
     let organisation =
         block(move || get_all(&pool, authentication_details.account_id))
             .await?;
@@ -33,7 +33,7 @@ pub async fn create_organisation(
     pool: Data<Pool>,
     payload: Json<CreateOrganisationPayload>,
     authentication_details: crate::auth::AuthenticationDetails,
-) -> Result<Json<Organisation>, ApiError> {
+) -> Result<Json<Organisation>, Error> {
     let organisation = block(move || {
         create(
             &pool,
@@ -56,7 +56,7 @@ pub async fn patch_organisation(
     pool: Data<Pool>,
     payload: Json<PatchOrganisation>,
     organisation: Path<i32>,
-) -> Result<Json<Organisation>, ApiError> {
+) -> Result<Json<Organisation>, Error> {
     let organisation_res = block(move || {
         patch(
             &pool,

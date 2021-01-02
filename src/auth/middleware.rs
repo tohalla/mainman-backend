@@ -2,7 +2,7 @@ use actix_service::{Service, Transform};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     web::Data,
-    Error, HttpMessage, HttpResponse,
+    HttpMessage, HttpResponse,
 };
 use diesel::prelude::*;
 use futures::{
@@ -15,9 +15,12 @@ use std::rc::Rc;
 use std::task::{Context, Poll};
 
 use super::AuthenticationDetails;
-use crate::db::Pool;
-use crate::error::ApiError;
-use crate::schema::{organisation, organisation_account};
+use crate::{
+    db::Pool,
+    error::Error,
+    schema::{organisation, organisation_account},
+    MainmanResult,
+};
 
 #[derive(Debug, Deserialize)]
 pub struct PathInfo {
@@ -51,14 +54,14 @@ where
     S: Service<
         Request = ServiceRequest,
         Response = ServiceResponse<B>,
-        Error = Error,
+        Error = actix_web::Error,
     >,
     S::Future: 'static,
     B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
-    type Error = Error;
+    type Error = actix_web::Error;
     type InitError = ();
     type Transform = RequireAuthenticationMiddleware<'a, S>;
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
@@ -81,7 +84,7 @@ fn check_access(
     pool: &Pool,
     authentication_details: &AuthenticationDetails,
     path_info: &PathInfo,
-) -> Result<bool, ApiError> {
+) -> MainmanResult<bool> {
     check_account(&authentication_details, &path_info).and_then(|_| {
         check_organisation(&pool, &authentication_details, &path_info)
     })
@@ -91,7 +94,7 @@ fn check_organisation(
     pool: &Pool,
     authentication_details: &AuthenticationDetails,
     path_info: &PathInfo,
-) -> Result<bool, ApiError> {
+) -> MainmanResult<bool> {
     match path_info.organisation_id {
         Some(organisation_id) => {
             let conn = pool.get().unwrap();
@@ -113,7 +116,7 @@ fn check_organisation(
                     return Ok(true);
                 }
             }
-            Err(ApiError::Unauthorized)
+            Err(Error::UnauthorizedError)
         }
         None => Ok(true),
     }
@@ -122,10 +125,10 @@ fn check_organisation(
 fn check_account(
     authentication_details: &AuthenticationDetails,
     path_info: &PathInfo,
-) -> Result<bool, ApiError> {
+) -> MainmanResult<bool> {
     if let Some(account_id) = path_info.account_id {
         if authentication_details.account_id != account_id {
-            return Err(ApiError::Unauthorized);
+            return Err(Error::UnauthorizedError);
         }
     }
     Ok(true)
@@ -136,14 +139,14 @@ where
     S: Service<
             Request = ServiceRequest,
             Response = ServiceResponse<B>,
-            Error = Error,
+            Error = actix_web::Error,
         > + 'static,
     S::Future: 'static,
     B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
-    type Error = Error;
+    type Error = actix_web::Error;
     type Future =
         Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 

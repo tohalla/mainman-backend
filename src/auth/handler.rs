@@ -5,9 +5,7 @@ use actix_web::{
 };
 use uuid::Uuid;
 
-use crate::account;
-use crate::db::Pool;
-use crate::error::ApiError;
+use crate::{account, db::Pool, error::Error, MainmanResult};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AuthPayload {
@@ -19,7 +17,7 @@ pub struct AuthPayload {
 pub async fn authenticate(
     pool: Data<Pool>,
     payload: Json<AuthPayload>,
-) -> Result<HttpResponse, ApiError> {
+) -> MainmanResult<HttpResponse> {
     let account_id = super::find_by_auth_details(&pool, payload.into_inner())?;
 
     let (authentication_token, refresh_token) =
@@ -35,7 +33,7 @@ pub async fn authenticate(
 pub async fn refresh_session(
     pool: Data<Pool>,
     req: HttpRequest,
-) -> Result<HttpResponse, ApiError> {
+) -> MainmanResult<HttpResponse> {
     let authentication_token = req
         .cookie("authorization")
         .map(|authentication_token| authentication_token.value().to_string());
@@ -52,7 +50,7 @@ pub async fn refresh_session(
         });
 
     if authentication_details.is_none() {
-        return Err(ApiError::Unauthorized);
+        return Err(Error::UnauthorizedError);
     }
 
     let (authentication_token, refresh_token) =
@@ -73,7 +71,7 @@ pub async fn refresh_session(
 pub async fn get_account(
     pool: Data<Pool>,
     authentication_details: super::AuthenticationDetails,
-) -> Result<Json<account::handler::AccountResponse>, ApiError> {
+) -> MainmanResult<Json<account::handler::AccountResponse>> {
     let account =
         block(move || account::find(&pool, authentication_details.account_id))
             .await?;
@@ -81,7 +79,7 @@ pub async fn get_account(
 }
 
 #[delete("")]
-pub async fn sign_out() -> Result<HttpResponse, ApiError> {
+pub async fn sign_out() -> MainmanResult<HttpResponse> {
     Ok(HttpResponse::Ok()
         .cookie(
             super::decorate_cookie(Cookie::build("refresh-token", "")).finish(),

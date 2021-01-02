@@ -2,9 +2,11 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
 use crate::account::Account;
-use crate::db::Pool;
-use crate::error::ApiError;
-use crate::schema::{organisation, organisation_account};
+use crate::{
+    db::Pool,
+    schema::{organisation, organisation_account},
+    MainmanResult,
+};
 
 pub mod handler;
 pub mod routes;
@@ -49,60 +51,39 @@ pub struct PatchOrganisation {
     locale: Option<String>,
 }
 
-pub fn find(
-    pool: &Pool,
-    organisation_id: i32,
-) -> Result<Organisation, ApiError> {
+pub fn find(pool: &Pool, organisation_id: i32) -> MainmanResult<Organisation> {
     use crate::schema::organisation::dsl::*;
-
-    let conn = pool.get()?;
-    let res = organisation
+    Ok(organisation
         .find(organisation_id)
-        .first::<Organisation>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
-
-    Ok(res)
+        .first::<Organisation>(&pool.get()?)?)
 }
 
 pub fn get_all(
     pool: &Pool,
     account_id: i32,
-) -> Result<Vec<Organisation>, ApiError> {
+) -> MainmanResult<Vec<Organisation>> {
     use crate::schema::organisation::dsl::*;
-
-    let conn = pool.get()?;
-    let res = organisation
+    Ok(organisation
         .filter(admin_account.eq(account_id))
-        .load::<Organisation>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
-
-    Ok(res)
+        .load::<Organisation>(&pool.get()?)?)
 }
 
 pub fn create(
     pool: &Pool,
     payload: CreateOrganisation,
-) -> Result<Organisation, ApiError> {
+) -> MainmanResult<Organisation> {
     use crate::schema::organisation::dsl::*;
-
-    let conn = pool.get()?;
-    let res = diesel::insert_into(organisation)
+    Ok(diesel::insert_into(organisation)
         .values(payload)
-        .get_result::<Organisation>(&conn)?;
-
-    Ok(res)
+        .get_result::<Organisation>(&pool.get()?)?)
 }
 
 pub fn patch(
     pool: &Pool,
     payload: &PatchOrganisation,
-) -> Result<Organisation, ApiError> {
+) -> MainmanResult<Organisation> {
     use crate::schema::organisation::dsl::*;
-
-    let conn = pool.get()?;
-    let res = diesel::update(organisation.find(payload.id))
+    Ok(diesel::update(organisation.find(payload.id))
         .set(payload)
-        .get_result::<Organisation>(&conn)?;
-
-    Ok(res)
+        .get_result::<Organisation>(&pool.get()?)?)
 }

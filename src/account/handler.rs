@@ -1,9 +1,12 @@
-use actix_web::web::{block, Data, Json, Path};
+use actix_web::{
+    error::ErrorBadRequest,
+    web::{block, Data, Json, Path},
+    Error,
+};
 use bcrypt::{hash, DEFAULT_COST};
 
 use super::{create, find, Account, CreateAccount};
-use crate::db::Pool;
-use crate::error::ApiError;
+use crate::{db::Pool, MainmanResult};
 use heck::TitleCase;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
@@ -20,17 +23,12 @@ pub struct CreateAccountPayload {
     pub last_name: String,
     pub email: String,
     pub password: String,
-    pub retype_password: String,
 }
 
 pub async fn create_account(
     pool: Data<Pool>,
     payload: Json<CreateAccountPayload>,
-) -> Result<Json<AccountResponse>, ApiError> {
-    if payload.password != payload.retype_password {
-        return Err(ApiError::ValidationError);
-    }
-
+) -> MainmanResult<Json<AccountResponse>> {
     let account = block(move || {
         create(
             &pool,
@@ -49,7 +47,7 @@ pub async fn create_account(
 pub async fn get_account(
     pool: Data<Pool>,
     account_id: Path<i32>,
-) -> Result<Json<AccountResponse>, ApiError> {
+) -> MainmanResult<Json<AccountResponse>> {
     let account = block(move || find(&pool, *account_id)).await?;
     Ok(Json(account))
 }

@@ -5,11 +5,9 @@ extern crate diesel;
 #[macro_use]
 extern crate serde;
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate serde_json;
-#[macro_use]
-extern crate log;
+// #[macro_use]
+// extern crate log;
 
 mod account;
 mod appliance;
@@ -23,6 +21,8 @@ mod organisation;
 mod routes;
 mod schema;
 mod server;
+
+pub type MainmanResult<T> = Result<T, error::Error>;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

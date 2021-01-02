@@ -4,9 +4,11 @@ use serde_json;
 use uuid::Uuid;
 
 use crate::appliance::Appliance;
-use crate::db::Pool;
-use crate::error::ApiError;
-use crate::schema::{maintainer, maintainer_appliance};
+use crate::{
+    db::Pool,
+    schema::{maintainer, maintainer_appliance},
+    MainmanResult,
+};
 
 pub mod handler;
 pub mod routes;
@@ -46,57 +48,37 @@ pub struct PatchMaintainer {
     details: Option<serde_json::Value>,
 }
 
-pub fn find(pool: &Pool, id: i32) -> Result<Maintainer, ApiError> {
+pub fn find(pool: &Pool, id: i32) -> MainmanResult<Maintainer> {
     use crate::schema::maintainer::dsl;
-
-    let conn = pool.get()?;
-    let res = dsl::maintainer
-        .find(id)
-        .first::<Maintainer>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
-
-    Ok(res)
+    Ok(dsl::maintainer.find(id).first::<Maintainer>(&pool.get()?)?)
 }
 
 pub fn get_all(
     pool: &Pool,
     organisation: i32,
-) -> Result<Vec<Maintainer>, ApiError> {
+) -> MainmanResult<Vec<Maintainer>> {
     use crate::schema::maintainer::dsl;
-
-    let conn = pool.get()?;
-    let res = dsl::maintainer
+    Ok(dsl::maintainer
         .filter(dsl::organisation.eq(organisation))
-        .load::<Maintainer>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
-
-    Ok(res)
+        .load::<Maintainer>(&pool.get()?)?)
 }
 
 pub fn create(
     pool: &Pool,
     payload: &CreateMaintainer,
-) -> Result<Maintainer, ApiError> {
+) -> MainmanResult<Maintainer> {
     use crate::schema::maintainer::dsl::*;
-
-    let conn = pool.get()?;
-    let res = diesel::insert_into(maintainer)
+    Ok(diesel::insert_into(maintainer)
         .values(payload)
-        .get_result::<Maintainer>(&conn)?;
-
-    Ok(res)
+        .get_result::<Maintainer>(&pool.get()?)?)
 }
 
 pub fn patch(
     pool: &Pool,
     payload: &PatchMaintainer,
-) -> Result<Maintainer, ApiError> {
+) -> MainmanResult<Maintainer> {
     use crate::schema::maintainer::dsl::*;
-
-    let conn = pool.get()?;
-    let res = diesel::update(maintainer.find(payload.id))
+    Ok(diesel::update(maintainer.find(payload.id))
         .set(payload)
-        .get_result::<Maintainer>(&conn)?;
-
-    Ok(res)
+        .get_result::<Maintainer>(&pool.get()?)?)
 }

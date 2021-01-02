@@ -1,9 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::db::Pool;
-use crate::error::ApiError;
-use crate::schema::account;
+use crate::{db::Pool, schema::account, MainmanResult};
 
 pub mod handler;
 pub mod routes;
@@ -39,28 +37,22 @@ pub struct UpdateAccount<'a> {
 pub fn find(
     pool: &Pool,
     account_id: i32,
-) -> Result<handler::AccountResponse, ApiError> {
+) -> MainmanResult<handler::AccountResponse> {
     use crate::schema::account::dsl::*;
-
-    let conn = pool.get()?;
-    let account_response = account
+    Ok(account
         .find(account_id)
-        .first::<Account>(&conn)
-        .map_err(|_| ApiError::NotFound)?;
-
-    Ok(account_response.into())
+        .first::<Account>(&pool.get()?)?
+        .into())
 }
 
 pub fn create(
     pool: &Pool,
     new_account: CreateAccount,
-) -> Result<handler::AccountResponse, ApiError> {
+) -> MainmanResult<handler::AccountResponse> {
     use crate::schema::account::dsl::*;
 
-    let conn = pool.get()?;
-    let res = diesel::insert_into(account)
+    Ok(diesel::insert_into(account)
         .values(new_account)
-        .get_result::<Account>(&conn)?;
-
-    Ok(res.into())
+        .get_result::<Account>(&pool.get()?)?
+        .into())
 }

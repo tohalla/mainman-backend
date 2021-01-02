@@ -11,9 +11,7 @@ use jsonwebtoken::{
 };
 use uuid::Uuid;
 
-use crate::db::Pool;
-use crate::error::ApiError;
-use crate::schema::refresh_token;
+use crate::{db::Pool, error::Error, schema::refresh_token, MainmanResult};
 
 mod handler;
 pub mod middleware;
@@ -35,53 +33,49 @@ pub struct AuthenticationDetails {
 #[table_name = "refresh_token"]
 pub struct RefreshTokenIdentifier(#[column_name = "token"] pub Uuid);
 
-pub fn encode_jwt(claim: Claim) -> Result<String, ApiError> {
-    encode(
+pub fn encode_jwt(claim: Claim) -> MainmanResult<String> {
+    Ok(encode(
         &Header::default(),
         &claim,
         &EncodingKey::from_secret(std::env::var("JWT_KEY").unwrap().as_ref()),
-    )
-    .map_err(|_| ApiError::InternalServerError)
+    )?)
 }
 
 #[allow(dead_code)]
-pub fn decode_jwt(token: &str) -> Result<Claim, ApiError> {
-    decode::<Claim>(
+pub fn decode_jwt(token: &str) -> MainmanResult<Claim> {
+    Ok(decode::<Claim>(
         token,
         &DecodingKey::from_secret(std::env::var("JWT_KEY").unwrap().as_ref()),
         &Validation::default(),
     )
-    .map(|data| data.claims)
-    .map_err(|_| ApiError::Unauthorized)
+    .map(|data| data.claims)?)
 }
 
 pub fn find_by_auth_details(
     pool: &Pool,
     payload: handler::AuthPayload,
-) -> Result<i32, ApiError> {
+) -> MainmanResult<i32> {
     use crate::schema::account::dsl::*;
 
-    let conn = pool.get()?;
     let result = account
         .select((id, password))
         .filter(
             sql("lower(email) = ")
                 .bind::<sql_types::Text, _>(payload.email.to_lowercase()),
         )
-        .first::<(i32, Vec<u8>)>(&conn)
-        .map_err(|_| ApiError::Unauthorized)?;
+        .first::<(i32, Vec<u8>)>(&pool.get()?)?;
 
     if verify(payload.password, std::str::from_utf8(&result.1)?)? {
         Ok(result.0)
     } else {
-        Err(ApiError::Unauthorized)
+        Err(Error::UnauthorizedError)
     }
 }
 
 pub fn create_authentication_tokens(
     pool: &Pool,
     account_id: Option<i32>,
-) -> Result<(Cookie, Cookie), ApiError> {
+) -> MainmanResult<(Cookie, Cookie)> {
     let authentication_token = match account_id {
         Some(account_id) => encode_jwt(account_id.into())?,
         None => "".to_string(),
@@ -105,7 +99,7 @@ fn create_refresh_token(
     pool: &Pool,
     account_id: Option<i32>,
     authentication_token: String,
-) -> Result<Cookie, ApiError> {
+) -> MainmanResult<Cookie> {
     let conn = pool.get()?;
 
     let account_id = match account_id {
@@ -127,7 +121,7 @@ pub fn validate_refresh_token(
     pool: &Pool,
     token: &Uuid,
     authentication_token: Option<String>,
-) -> Result<AuthenticationDetails, ApiError> {
+) -> MainmanResult<AuthenticationDetails> {
     if let Some(authentication_token) = authentication_token {
         let conn = pool.get()?;
         let result = sql_query(
@@ -139,11 +133,11 @@ pub fn validate_refresh_token(
 
         return Ok(result);
     }
-    Err(ApiError::Unauthorized)
+    Err(Error::UnauthorizedError)
 }
 
 impl AuthenticationDetails {
-    fn from_identity(identity: Option<String>) -> Result<Self, ApiError> {
+    fn from_identity(identity: Option<String>) -> MainmanResult<Self> {
         if let Some(authentication_token) = identity {
             match decode_jwt(&authentication_token) {
                 Ok(claim) => {
@@ -151,15 +145,15 @@ impl AuthenticationDetails {
                         account_id: claim.account_id,
                     })
                 }
-                Err(_) => return Err(ApiError::Unauthorized),
+                Err(_) => return Err(Error::UnauthorizedError),
             };
         }
-        Err(ApiError::Unauthorized)
+        Err(Error::UnauthorizedError)
     }
 }
 
 impl FromRequest for AuthenticationDetails {
-    type Error = ApiError;
+    type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
     type Config = ();
 
