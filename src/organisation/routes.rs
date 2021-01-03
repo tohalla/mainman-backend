@@ -6,26 +6,23 @@ use crate::maintainer;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("")
-            .service(
-                web::scope("/{organisation_id}")
-                    .wrap(RequireAuthentication::default())
-                    .route("", web::get().to(super::handler::get_organisation))
-                    .route(
-                        "",
-                        web::patch().to(super::handler::patch_organisation),
-                    )
-                    .service(
-                        web::scope("/entities")
-                            .configure(entity::routes::organisation_routes),
-                    )
-                    .service(
-                        web::scope("/maintainers")
-                            .configure(maintainer::routes::organisation_routes),
-                    ),
-            )
+        web::scope("/{organisation_id}")
             .wrap(RequireAuthentication::default())
-            .route("", web::get().to(super::handler::get_organisations))
-            .route("", web::post().to(super::handler::create_organisation)),
+            .service(super::handler::get_organisation)
+            .service(super::handler::patch_organisation)
+            .service(
+                web::scope("/entities")
+                    .configure(entity::routes::organisation_routes),
+            )
+            .service(
+                web::scope("/maintainers")
+                    .configure(maintainer::routes::organisation_routes),
+            ),
+    )
+    .service(
+        web::scope("")
+            .wrap(RequireAuthentication::default())
+            .service(super::handler::get_organisations)
+            .service(super::handler::create_organisation),
     );
 }
