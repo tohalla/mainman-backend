@@ -4,8 +4,8 @@ extern crate actix_web;
 extern crate diesel;
 #[macro_use]
 extern crate serde;
-#[macro_use]
-extern crate serde_json;
+// #[macro_use]
+// extern crate serde_json;
 // #[macro_use]
 // extern crate log;
 

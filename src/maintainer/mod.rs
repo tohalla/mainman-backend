@@ -3,9 +3,10 @@ use diesel::prelude::*;
 use serde_json;
 use uuid::Uuid;
 
-use crate::entity::Entity;
 use crate::{
-    db::Pool,
+    db::Connection,
+    entity::Entity,
+    error::Error,
     schema::{maintainer, maintainer_entity},
     MainmanResult,
 };
@@ -13,7 +14,10 @@ use crate::{
 pub mod handler;
 pub mod routes;
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Associations)]
+#[derive(
+    Debug, Serialize, Deserialize, Queryable, Associations, Identifiable,
+)]
+#[table_name = "maintainer"]
 pub struct Maintainer {
     pub id: i32,
     pub created_at: NaiveDateTime,
@@ -34,10 +38,10 @@ pub struct MaintainerEntity {
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintainer"]
-pub struct CreateMaintainer {
+pub struct NewMaintainer {
     account: Option<i32>,
     organisation: i32,
-    details: serde_json::Value,
+    details: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
@@ -48,37 +52,38 @@ pub struct PatchMaintainer {
     details: Option<serde_json::Value>,
 }
 
-pub fn find(pool: &Pool, id: i32) -> MainmanResult<Maintainer> {
-    use crate::schema::maintainer::dsl;
-    Ok(dsl::maintainer.find(id).first::<Maintainer>(&pool.get()?)?)
+impl Maintainer {
+    pub fn get(id: i32, conn: &Connection) -> MainmanResult<Maintainer> {
+        Ok(maintainer::table.find(id).first::<Maintainer>(conn)?)
+    }
+
+    pub fn by_organisation(
+        organisation: i32,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<Maintainer>> {
+        use crate::schema::maintainer::dsl;
+
+        Ok(dsl::maintainer
+            .filter(dsl::organisation.eq(organisation))
+            .load::<Maintainer>(conn)
+            .map_err(|_| Error::NotFoundError)?)
+    }
+
+    pub fn patch(
+        &self,
+        payload: &PatchMaintainer,
+        conn: &Connection,
+    ) -> MainmanResult<Maintainer> {
+        Ok(diesel::update(self)
+            .set(payload)
+            .get_result::<Maintainer>(conn)?)
+    }
 }
 
-pub fn get_all(
-    pool: &Pool,
-    organisation: i32,
-) -> MainmanResult<Vec<Maintainer>> {
-    use crate::schema::maintainer::dsl;
-    Ok(dsl::maintainer
-        .filter(dsl::organisation.eq(organisation))
-        .load::<Maintainer>(&pool.get()?)?)
-}
-
-pub fn create(
-    pool: &Pool,
-    payload: &CreateMaintainer,
-) -> MainmanResult<Maintainer> {
-    use crate::schema::maintainer::dsl::*;
-    Ok(diesel::insert_into(maintainer)
-        .values(payload)
-        .get_result::<Maintainer>(&pool.get()?)?)
-}
-
-pub fn patch(
-    pool: &Pool,
-    payload: &PatchMaintainer,
-) -> MainmanResult<Maintainer> {
-    use crate::schema::maintainer::dsl::*;
-    Ok(diesel::update(maintainer.find(payload.id))
-        .set(payload)
-        .get_result::<Maintainer>(&pool.get()?)?)
+impl NewMaintainer {
+    pub fn insert(&self, conn: &Connection) -> MainmanResult<Maintainer> {
+        Ok(diesel::insert_into(maintainer::table)
+            .values(self)
+            .get_result::<Maintainer>(conn)?)
+    }
 }
