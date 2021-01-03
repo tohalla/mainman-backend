@@ -7,7 +7,7 @@ use actix_web::{
 use bcrypt::BcryptError;
 use diesel::{r2d2::PoolError, result::Error as DieselError};
 use jsonwebtoken;
-use std::io::{self};
+use std::io;
 
 #[derive(Debug)]
 pub enum Error {

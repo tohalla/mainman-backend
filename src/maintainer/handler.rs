@@ -1,25 +1,22 @@
 use actix_web::web::{Data, Json, Path};
 
 use super::*;
-use crate::{db::Pool, MainmanResult};
+use crate::{db::Pool, MainmanResponse};
 
 #[get("{maintainer_id}")]
 pub async fn get_maintainer(
     pool: Data<Pool>,
     maintainer_id: Path<i32>,
-) -> MainmanResult<Json<Maintainer>> {
-    Ok(Json(Maintainer::get(*maintainer_id, &pool.get()?)?))
+) -> MainmanResponse<Maintainer> {
+    Ok(Maintainer::get(*maintainer_id, &pool.get()?)?.into())
 }
 
 #[get("")]
 pub async fn get_maintainers(
     pool: Data<Pool>,
     organisation: Path<i32>,
-) -> MainmanResult<Json<Vec<Maintainer>>> {
-    Ok(Json(Maintainer::by_organisation(
-        *organisation,
-        &pool.get()?,
-    )?))
+) -> MainmanResponse<Vec<Maintainer>> {
+    Ok(Maintainer::by_organisation(*organisation, &pool.get()?)?.into())
 }
 
 #[post("")]
@@ -27,14 +24,13 @@ pub async fn create_maintainer(
     pool: Data<Pool>,
     payload: Json<NewMaintainer>,
     organisation: Path<i32>,
-) -> MainmanResult<Json<Maintainer>> {
-    Ok(Json(
-        NewMaintainer {
-            organisation: *organisation,
-            ..payload.into_inner()
-        }
-        .insert(&pool.get()?)?,
-    ))
+) -> MainmanResponse<Maintainer> {
+    Ok(NewMaintainer {
+        organisation: *organisation,
+        ..payload.into_inner()
+    }
+    .insert(&pool.get()?)?
+    .into())
 }
 
 #[patch("{hash}")]
@@ -42,10 +38,9 @@ pub async fn patch_maintainer(
     pool: Data<Pool>,
     payload: Json<PatchMaintainer>,
     maintainer_id: Path<i32>,
-) -> MainmanResult<Json<Maintainer>> {
+) -> MainmanResponse<Maintainer> {
     let conn = &pool.get()?;
-
-    Ok(Json(
-        Maintainer::get(*maintainer_id, &conn)?.patch(&payload, &conn)?,
-    ))
+    Ok(Maintainer::get(*maintainer_id, &conn)?
+        .patch(&payload, &conn)?
+        .into())
 }

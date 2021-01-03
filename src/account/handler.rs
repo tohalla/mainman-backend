@@ -3,7 +3,7 @@ use bcrypt::{hash, DEFAULT_COST};
 use heck::TitleCase;
 
 use super::{Account, NewAccount};
-use crate::{db::Pool, MainmanResult};
+use crate::{db::Pool, MainmanResponse};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct NewAccountPayload {
@@ -17,21 +17,20 @@ pub struct NewAccountPayload {
 pub async fn create_account(
     pool: Data<Pool>,
     payload: Json<NewAccountPayload>,
-) -> MainmanResult<Json<Account>> {
-    Ok(Json(
-        NewAccount {
-            email: &payload.email,
-            first_name: &payload.first_name.to_title_case(),
-            last_name: &payload.last_name.to_title_case(),
-            password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
-        }
-        .insert(&pool.get()?)?,
-    ))
+) -> MainmanResponse<Account> {
+    Ok(NewAccount {
+        email: &payload.email,
+        first_name: &payload.first_name.to_title_case(),
+        last_name: &payload.last_name.to_title_case(),
+        password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
+    }
+    .insert(&pool.get()?)?
+    .into())
 }
 
 pub async fn get_account(
     pool: Data<Pool>,
     account_id: Path<i32>,
-) -> MainmanResult<Json<Account>> {
-    Ok(Json(Account::get(*account_id, &pool.get()?)?))
+) -> MainmanResponse<Account> {
+    Ok(Account::get(*account_id, &pool.get()?)?.into())
 }

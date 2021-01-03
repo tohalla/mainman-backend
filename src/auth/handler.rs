@@ -4,7 +4,9 @@ use actix_web::{
 };
 use uuid::Uuid;
 
-use crate::{account::Account, db::Pool, error::Error, MainmanResult};
+use crate::{
+    account::Account, db::Pool, error::Error, MainmanResponse, MainmanResult,
+};
 
 #[post("")]
 pub async fn authenticate(
@@ -45,11 +47,8 @@ pub async fn refresh_session(
 pub async fn get_account(
     pool: Data<Pool>,
     authentication_details: super::AuthenticationDetails,
-) -> MainmanResult<Json<Account>> {
-    Ok(Json(Account::get(
-        authentication_details.account_id,
-        &pool.get()?,
-    )?))
+) -> MainmanResponse<Account> {
+    Ok(Account::get(authentication_details.account_id, &pool.get()?)?.into())
 }
 
 #[delete("")]
