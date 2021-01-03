@@ -1,7 +1,7 @@
 use actix_web::web::{Data, Json, Path};
 
 use super::*;
-use crate::{db::Pool, MainmanResponse};
+use crate::{auth::Claim, db::Pool, MainmanResponse};
 
 pub async fn get_organisation(
     pool: Data<Pool>,
@@ -12,21 +12,18 @@ pub async fn get_organisation(
 
 pub async fn get_organisations(
     pool: Data<Pool>,
-    authentication_details: crate::auth::AuthenticationDetails,
+    claim: Claim,
 ) -> MainmanResponse<Vec<Organisation>> {
-    Ok(
-        Organisation::all(authentication_details.account_id, &pool.get()?)?
-            .into(),
-    )
+    Ok(Organisation::all(claim.account_id, &pool.get()?)?.into())
 }
 
 pub async fn create_organisation(
     pool: Data<Pool>,
     payload: Json<NewOrganisation>,
-    authentication_details: crate::auth::AuthenticationDetails,
+    claim: Claim,
 ) -> MainmanResponse<Organisation> {
     Ok(NewOrganisation {
-        admin_account: authentication_details.account_id,
+        admin_account: claim.account_id,
         ..payload.into_inner()
     }
     .create(&pool.get()?)?

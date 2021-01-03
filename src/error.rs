@@ -15,6 +15,7 @@ pub enum Error {
     UnauthorizedError,
     BadRequestError,
     IOError(io::Error),
+    JWTError(jsonwebtoken::errors::Error),
     EncodingError(String),
     InternalServerError(Option<String>),
 }
@@ -83,6 +84,6 @@ impl From<std::str::Utf8Error> for Error {
 
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(error: jsonwebtoken::errors::Error) -> Error {
-        Error::EncodingError(format!("{:}", error))
+        Error::JWTError(error)
     }
 }

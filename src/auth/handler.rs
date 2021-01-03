@@ -46,9 +46,9 @@ pub async fn refresh_session(
 #[get("")]
 pub async fn get_account(
     pool: Data<Pool>,
-    authentication_details: super::AuthenticationDetails,
+    claim: super::Claim,
 ) -> MainmanResponse<Account> {
-    Ok(Account::get(authentication_details.account_id, &pool.get()?)?.into())
+    Ok(Account::get(claim.account_id, &pool.get()?)?.into())
 }
 
 #[delete("")]

@@ -39,23 +39,18 @@ pub struct Claim {
 
 #[derive(Debug, QueryableByName)]
 #[table_name = "refresh_token"]
-pub struct AuthenticationDetails {
-    pub account_id: i32,
-}
-
-#[derive(Debug, QueryableByName)]
-#[table_name = "refresh_token"]
 pub struct RefreshToken(#[column_name = "token"] pub Uuid);
 
 impl Claim {
     pub fn jwt(&self) -> MainmanResult<String> {
-        Ok(encode(
+        encode(
             &Header::default(),
             &self,
             &EncodingKey::from_secret(
                 std::env::var("JWT_KEY").unwrap().as_ref(),
             ),
-        )?)
+        )
+        .map_err(|_| Error::InternalServerError(None))
     }
 
     pub fn decode(token: &str) -> MainmanResult<Self> {
@@ -67,6 +62,15 @@ impl Claim {
             &Validation::default(),
         )
         .map(|data| data.claims)?)
+    }
+
+    fn from_identity(identity: Option<String>) -> MainmanResult<Self> {
+        match identity
+            .and_then(|identity| AuthCookies::parse_auth_token(&identity))
+        {
+            Some(authentication_token) => Claim::decode(&authentication_token),
+            None => Err(Error::UnauthorizedError),
+        }
     }
 }
 
@@ -184,36 +188,18 @@ impl RefreshToken {
     }
 }
 
-impl AuthenticationDetails {
-    fn from_identity(identity: Option<String>) -> MainmanResult<Self> {
-        if let Some(authentication_token) = identity
-            .and_then(|identity| AuthCookies::parse_auth_token(&identity))
-        {
-            match Claim::decode(&authentication_token) {
-                Ok(claim) => {
-                    return Ok(AuthenticationDetails {
-                        account_id: claim.account_id,
-                    })
-                }
-                Err(_) => return Err(Error::UnauthorizedError),
-            };
-        }
-        Err(Error::UnauthorizedError)
-    }
-}
-
-impl FromRequest for AuthenticationDetails {
+impl FromRequest for Claim {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
     type Config = ();
 
     fn from_request(req: &HttpRequest, _: &mut dev::Payload) -> Self::Future {
-        match AuthenticationDetails::from_identity(
+        match Claim::from_identity(
             req.cookie("authorization")
                 .map(|cookie| cookie.value().to_string()),
         ) {
-            Ok(authentication_details) => return ok(authentication_details),
-            Err(e) => return err(e),
+            Ok(claim) => ok(claim),
+            Err(e) => err(e),
         }
     }
 }

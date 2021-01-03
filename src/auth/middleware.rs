@@ -14,9 +14,9 @@ use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
 
-use super::AuthenticationDetails;
+use super::*;
 use crate::{
-    db::Pool,
+    db::{Connection, Pool},
     error::Error,
     schema::{organisation, organisation_account},
     MainmanResult,
@@ -81,57 +81,47 @@ pub struct RequireAuthenticationMiddleware<'a, S> {
 }
 
 fn check_access(
-    pool: &Pool,
-    authentication_details: &AuthenticationDetails,
+    claim: &Claim,
     path_info: &PathInfo,
-) -> MainmanResult<bool> {
-    check_account(&authentication_details, &path_info).and_then(|_| {
-        check_organisation(&pool, &authentication_details, &path_info)
-    })
+    conn: &Connection,
+) -> MainmanResult<()> {
+    check_account(&claim, &path_info)
+        .and_then(|_| check_organisation(&claim, &path_info, conn))
 }
 
 fn check_organisation(
-    pool: &Pool,
-    authentication_details: &AuthenticationDetails,
+    claim: &Claim,
     path_info: &PathInfo,
-) -> MainmanResult<bool> {
+    conn: &Connection,
+) -> MainmanResult<()> {
     match path_info.organisation_id {
         Some(organisation_id) => {
-            let conn = pool.get().unwrap();
             let admin_account = organisation::dsl::organisation
-                .left_join(
-                    organisation_account::table.on(
-                        organisation_account::organisation
-                            .eq(organisation_id)
-                            .and(
-                                organisation_account::account
-                                    .eq(authentication_details.account_id),
-                            ),
+                .left_join(organisation_account::table.on(
+                    organisation_account::organisation.eq(organisation_id).and(
+                        organisation_account::account.eq(claim.account_id),
                     ),
-                )
+                ))
                 .select(organisation::admin_account)
-                .first::<i32>(&conn);
+                .first::<i32>(conn);
             if let Ok(admin_account) = admin_account {
-                if admin_account == authentication_details.account_id {
-                    return Ok(true);
+                if admin_account == claim.account_id {
+                    return Ok(());
                 }
             }
             Err(Error::UnauthorizedError)
         }
-        None => Ok(true),
+        None => Ok(()),
     }
 }
 
-fn check_account(
-    authentication_details: &AuthenticationDetails,
-    path_info: &PathInfo,
-) -> MainmanResult<bool> {
+fn check_account(claim: &Claim, path_info: &PathInfo) -> MainmanResult<()> {
     if let Some(account_id) = path_info.account_id {
-        if authentication_details.account_id != account_id {
+        if claim.account_id != account_id {
             return Err(Error::UnauthorizedError);
         }
     }
-    Ok(true)
+    Ok(())
 }
 
 impl<'a, S, B> Service for RequireAuthenticationMiddleware<'a, S>
@@ -162,20 +152,21 @@ where
             .match_info()
             .load::<PathInfo>()
             .unwrap_or(PathInfo::default());
-        let pool = req.app_data::<Data<Pool>>().unwrap();
+        let conn = req.app_data::<Data<Pool>>().unwrap().get().unwrap();
 
         let mut service = self.service.clone();
         let authentication_token = req
             .cookie("authorization")
             .map(|cookie| cookie.value().to_string());
-        match AuthenticationDetails::from_identity(authentication_token)
-            .and_then(|authentication_details| {
-                check_access(&pool, &authentication_details, &path_info)
-            }) {
-            Ok(_) => Box::pin(async move { Ok(service.call(req).await?) }),
-            Err(_) => Box::pin(ok(req.into_response(
-                HttpResponse::Unauthorized().finish().into_body(),
-            ))),
+
+        if let Ok(claim) = Claim::from_identity(authentication_token.to_owned())
+        {
+            if let Ok(_) = check_access(&claim, &path_info, &conn) {
+                return Box::pin(async move { Ok(service.call(req).await?) });
+            }
         }
+        Box::pin(ok(req.into_response(
+            HttpResponse::Unauthorized().finish().into_body(),
+        )))
     }
 }
