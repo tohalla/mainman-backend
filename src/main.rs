@@ -13,6 +13,7 @@ mod account;
 mod appliance;
 mod auth;
 mod cache;
+mod config;
 mod db;
 mod error;
 mod health;
