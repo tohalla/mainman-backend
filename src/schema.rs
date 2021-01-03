@@ -22,7 +22,7 @@ table! {
 }
 
 table! {
-    appliance (hash) {
+    entity (hash) {
         hash -> Uuid,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
@@ -44,8 +44,8 @@ table! {
 }
 
 table! {
-    maintainer_appliance (appliance, maintainer) {
-        appliance -> Uuid,
+    maintainer_entity (entity, maintainer) {
+        entity -> Uuid,
         maintainer -> Int4,
     }
 }
@@ -56,7 +56,7 @@ table! {
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         resolved_at -> Nullable<Timestamp>,
-        appliance -> Uuid,
+        entity -> Uuid,
         description -> Nullable<Text>,
     }
 }
@@ -105,12 +105,12 @@ table! {
 }
 
 joinable!(account_role -> organisation (organisation));
-joinable!(appliance -> organisation (organisation));
+joinable!(entity -> organisation (organisation));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
-joinable!(maintainer_appliance -> appliance (appliance));
-joinable!(maintainer_appliance -> maintainer (maintainer));
-joinable!(maintenance_event -> appliance (appliance));
+joinable!(maintainer_entity -> entity (entity));
+joinable!(maintainer_entity -> maintainer (maintainer));
+joinable!(maintenance_event -> entity (entity));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));
 joinable!(organisation -> account (admin_account));
@@ -122,9 +122,9 @@ joinable!(refresh_token -> account (account_id));
 allow_tables_to_appear_in_same_query!(
     account,
     account_role,
-    appliance,
+    entity,
     maintainer,
-    maintainer_appliance,
+    maintainer_entity,
     maintenance_event,
     maintenance_task,
     organisation,

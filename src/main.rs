@@ -10,11 +10,11 @@ extern crate serde_json;
 // extern crate log;
 
 mod account;
-mod appliance;
 mod auth;
 mod cache;
 mod config;
 mod db;
+mod entity;
 mod error;
 mod health;
 mod maintainer;

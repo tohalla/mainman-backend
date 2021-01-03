@@ -3,10 +3,10 @@ use diesel::prelude::*;
 use serde_json;
 use uuid::Uuid;
 
-use crate::appliance::Appliance;
+use crate::entity::Entity;
 use crate::{
     db::Pool,
-    schema::{maintainer, maintainer_appliance},
+    schema::{maintainer, maintainer_entity},
     MainmanResult,
 };
 
@@ -24,12 +24,12 @@ pub struct Maintainer {
 }
 
 #[derive(Debug, Queryable, Associations)]
-#[table_name = "maintainer_appliance"]
+#[table_name = "maintainer_entity"]
 #[belongs_to(Maintainer, foreign_key = "maintainer")]
-#[belongs_to(Appliance, foreign_key = "appliance")]
-pub struct MaintainerAppliance {
+#[belongs_to(Entity, foreign_key = "entity")]
+pub struct MaintainerEntity {
     pub maintainer: i32,
-    pub appliance: Uuid,
+    pub entity: Uuid,
 }
 
 #[derive(Debug, Deserialize, Insertable)]

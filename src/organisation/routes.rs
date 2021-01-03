@@ -1,7 +1,7 @@
 use actix_web::web;
 
-use crate::appliance;
 use crate::auth::middleware::RequireAuthentication;
+use crate::entity;
 use crate::maintainer;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
@@ -16,8 +16,8 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                         web::patch().to(super::handler::patch_organisation),
                     )
                     .service(
-                        web::scope("/appliances")
-                            .configure(appliance::routes::organisation_routes),
+                        web::scope("/entities")
+                            .configure(entity::routes::organisation_routes),
                     )
                     .service(
                         web::scope("/maintainers")

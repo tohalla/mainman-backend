@@ -2,15 +2,15 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::{db::Connection, error::Error, schema::appliance, MainmanResult};
+use crate::{db::Connection, error::Error, schema::entity, MainmanResult};
 
 pub mod handler;
 pub mod routes;
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
-#[table_name = "appliance"]
+#[table_name = "entity"]
 #[primary_key(hash)]
-pub struct Appliance {
+pub struct Entity {
     pub hash: uuid::Uuid,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
@@ -20,8 +20,8 @@ pub struct Appliance {
 }
 
 #[derive(Debug, Deserialize, Insertable)]
-#[table_name = "appliance"]
-pub struct NewAppliance {
+#[table_name = "entity"]
+pub struct NewEntity {
     name: String,
     description: String,
     #[serde(skip_deserializing)]
@@ -29,44 +29,44 @@ pub struct NewAppliance {
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
-#[table_name = "appliance"]
-pub struct PatchAppliance {
+#[table_name = "entity"]
+pub struct PatchEntity {
     name: Option<String>,
     description: Option<String>,
 }
 
-impl Appliance {
-    pub fn get(hash: Uuid, conn: &Connection) -> MainmanResult<Appliance> {
-        Ok(appliance::table.find(hash).first::<Appliance>(conn)?)
+impl Entity {
+    pub fn get(hash: Uuid, conn: &Connection) -> MainmanResult<Entity> {
+        Ok(entity::table.find(hash).first::<Entity>(conn)?)
     }
 
     pub fn by_organisation(
         organisation: i32,
         conn: &Connection,
-    ) -> MainmanResult<Vec<Appliance>> {
-        use crate::schema::appliance::dsl;
+    ) -> MainmanResult<Vec<Entity>> {
+        use crate::schema::entity::dsl;
 
-        Ok(dsl::appliance
+        Ok(dsl::entity
             .filter(dsl::organisation.eq(organisation))
-            .load::<Appliance>(conn)
+            .load::<Entity>(conn)
             .map_err(|_| Error::NotFoundError)?)
     }
 
     pub fn patch(
         &self,
-        payload: &PatchAppliance,
+        payload: &PatchEntity,
         conn: &Connection,
-    ) -> MainmanResult<Appliance> {
+    ) -> MainmanResult<Entity> {
         Ok(diesel::update(self)
             .set(payload)
-            .get_result::<Appliance>(conn)?)
+            .get_result::<Entity>(conn)?)
     }
 }
 
-impl NewAppliance {
-    pub fn insert(&self, conn: &Connection) -> MainmanResult<Appliance> {
-        Ok(diesel::insert_into(appliance::table)
+impl NewEntity {
+    pub fn insert(&self, conn: &Connection) -> MainmanResult<Entity> {
+        Ok(diesel::insert_into(entity::table)
             .values(self)
-            .get_result::<Appliance>(conn)?)
+            .get_result::<Entity>(conn)?)
     }
 }
