@@ -1,6 +1,7 @@
 use actix_service::{Service, Transform};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
+    http::header,
     web::Data,
     HttpMessage, HttpResponse,
 };
@@ -163,6 +164,30 @@ where
         {
             if let Ok(_) = check_access(&claim, &path_info, &conn) {
                 return Box::pin(async move { Ok(service.call(req).await?) });
+            }
+        }
+        if let Some(refresh_token) = req.cookie("refresh-token") {
+            if let Ok(refresh_token) = Uuid::parse_str(refresh_token.value()) {
+                if let Ok(claim) = super::RefreshToken(refresh_token)
+                    .validate_refresh_token(
+                        authentication_token.and_then(|auth_token| {
+                            AuthCookies::parse_auth_token(&auth_token)
+                        }),
+                        &conn,
+                    )
+                {
+                    if let Ok(cookies) = AuthCookies::cookies(&claim, &conn) {
+                        let path = req.path().to_owned();
+                        return Box::pin(ok(req.into_response(
+                            HttpResponse::TemporaryRedirect()
+                                .cookie(cookies.auth)
+                                .cookie(cookies.refresh)
+                                .header(header::LOCATION, path)
+                                .finish()
+                                .into_body(),
+                        )));
+                    }
+                }
             }
         }
         Box::pin(ok(req.into_response(
