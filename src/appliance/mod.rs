@@ -2,12 +2,14 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::{db::Pool, error::Error, schema::appliance, MainmanResult};
+use crate::{db::Connection, error::Error, schema::appliance, MainmanResult};
 
 pub mod handler;
 pub mod routes;
 
-#[derive(Debug, Serialize, Deserialize, Queryable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
+#[table_name = "appliance"]
+#[primary_key(hash)]
 pub struct Appliance {
     pub hash: uuid::Uuid,
     pub created_at: NaiveDateTime,
@@ -19,64 +21,52 @@ pub struct Appliance {
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "appliance"]
-pub struct CreateAppliance<'a> {
-    name: &'a str,
-    description: &'a str,
+pub struct NewAppliance {
+    name: String,
+    description: String,
+    #[serde(skip_deserializing)]
     organisation: i32,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
 #[table_name = "appliance"]
 pub struct PatchAppliance {
-    hash: uuid::Uuid,
     name: Option<String>,
     description: Option<String>,
 }
 
-pub fn find(pool: &Pool, hash: Uuid) -> MainmanResult<Appliance> {
-    use crate::schema::appliance::dsl;
-    Ok(dsl::appliance.find(hash).first::<Appliance>(&pool.get()?)?)
+impl Appliance {
+    pub fn get(hash: Uuid, conn: &Connection) -> MainmanResult<Appliance> {
+        Ok(appliance::table.find(hash).first::<Appliance>(conn)?)
+    }
+
+    pub fn by_organisation(
+        organisation: i32,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<Appliance>> {
+        use crate::schema::appliance::dsl;
+
+        Ok(dsl::appliance
+            .filter(dsl::organisation.eq(organisation))
+            .load::<Appliance>(conn)
+            .map_err(|_| Error::NotFoundError)?)
+    }
+
+    pub fn patch(
+        &self,
+        payload: &PatchAppliance,
+        conn: &Connection,
+    ) -> MainmanResult<Appliance> {
+        Ok(diesel::update(self)
+            .set(payload)
+            .get_result::<Appliance>(conn)?)
+    }
 }
 
-pub fn get_all(
-    pool: &Pool,
-    organisation: i32,
-) -> MainmanResult<Vec<Appliance>> {
-    use crate::schema::appliance::dsl;
-
-    let conn = pool.get()?;
-    let res = dsl::appliance
-        .filter(dsl::organisation.eq(organisation))
-        .load::<Appliance>(&conn)
-        .map_err(|_| Error::NotFoundError)?;
-
-    Ok(res)
-}
-
-pub fn create(
-    pool: &Pool,
-    payload: &CreateAppliance,
-) -> MainmanResult<Appliance> {
-    use crate::schema::appliance::dsl::*;
-
-    let conn = pool.get()?;
-    let res = diesel::insert_into(appliance)
-        .values(payload)
-        .get_result::<Appliance>(&conn)?;
-
-    Ok(res)
-}
-
-pub fn patch(
-    pool: &Pool,
-    payload: &PatchAppliance,
-) -> MainmanResult<Appliance> {
-    use crate::schema::appliance::dsl::*;
-
-    let conn = pool.get()?;
-    let res = diesel::update(appliance.find(payload.hash))
-        .set(payload)
-        .get_result::<Appliance>(&conn)?;
-
-    Ok(res)
+impl NewAppliance {
+    pub fn insert(&self, conn: &Connection) -> MainmanResult<Appliance> {
+        Ok(diesel::insert_into(appliance::table)
+            .values(self)
+            .get_result::<Appliance>(conn)?)
+    }
 }
