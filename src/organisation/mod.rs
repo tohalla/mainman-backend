@@ -1,9 +1,9 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::account::Account;
 use crate::{
-    db::Pool,
+    account::Account,
+    db::Connection,
     schema::{organisation, organisation_account},
     MainmanResult,
 };
@@ -11,7 +11,16 @@ use crate::{
 pub mod handler;
 pub mod routes;
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Associations)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Queryable,
+    Associations,
+    AsChangeset,
+    Identifiable,
+)]
+#[table_name = "organisation"]
 pub struct Organisation {
     pub id: i32,
     pub created_at: NaiveDateTime,
@@ -35,55 +44,57 @@ pub struct OrganisationAccount {
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "organisation"]
-pub struct CreateOrganisation<'a> {
-    name: &'a str,
-    organisation_identifier: &'a str,
-    locale: &'a str,
+pub struct NewOrganisation {
+    name: String,
+    organisation_identifier: String,
+    locale: String,
+    #[serde(skip_deserializing)]
     admin_account: i32,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
 #[table_name = "organisation"]
 pub struct PatchOrganisation {
-    id: i32,
     name: Option<String>,
     organisation_identifier: Option<String>,
     locale: Option<String>,
 }
 
-pub fn find(pool: &Pool, organisation_id: i32) -> MainmanResult<Organisation> {
-    use crate::schema::organisation::dsl::*;
-    Ok(organisation
-        .find(organisation_id)
-        .first::<Organisation>(&pool.get()?)?)
+impl Organisation {
+    pub fn get(
+        organisation_id: i32,
+        conn: &Connection,
+    ) -> MainmanResult<Organisation> {
+        Ok(organisation::table
+            .find(organisation_id)
+            .first::<Organisation>(conn)?)
+    }
+
+    pub fn all(
+        account_id: i32,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<Organisation>> {
+        use crate::schema::organisation::dsl::*;
+        Ok(organisation
+            .filter(admin_account.eq(account_id))
+            .load::<Organisation>(conn)?)
+    }
+
+    pub fn patch(
+        &self,
+        payload: &PatchOrganisation,
+        conn: &Connection,
+    ) -> MainmanResult<Self> {
+        Ok(diesel::update(self)
+            .set(payload)
+            .get_result::<Organisation>(conn)?)
+    }
 }
 
-pub fn get_all(
-    pool: &Pool,
-    account_id: i32,
-) -> MainmanResult<Vec<Organisation>> {
-    use crate::schema::organisation::dsl::*;
-    Ok(organisation
-        .filter(admin_account.eq(account_id))
-        .load::<Organisation>(&pool.get()?)?)
-}
-
-pub fn create(
-    pool: &Pool,
-    payload: CreateOrganisation,
-) -> MainmanResult<Organisation> {
-    use crate::schema::organisation::dsl::*;
-    Ok(diesel::insert_into(organisation)
-        .values(payload)
-        .get_result::<Organisation>(&pool.get()?)?)
-}
-
-pub fn patch(
-    pool: &Pool,
-    payload: &PatchOrganisation,
-) -> MainmanResult<Organisation> {
-    use crate::schema::organisation::dsl::*;
-    Ok(diesel::update(organisation.find(payload.id))
-        .set(payload)
-        .get_result::<Organisation>(&pool.get()?)?)
+impl NewOrganisation {
+    pub fn create(&self, conn: &Connection) -> MainmanResult<Organisation> {
+        Ok(diesel::insert_into(organisation::table)
+            .values(self)
+            .get_result::<Organisation>(conn)?)
+    }
 }

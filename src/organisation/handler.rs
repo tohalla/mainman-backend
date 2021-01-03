@@ -1,71 +1,46 @@
-use actix_web::web::{block, Data, Json, Path};
+use actix_web::web::{Data, Json, Path};
 
 use super::*;
-use crate::db::Pool;
-use crate::error::Error;
-
-#[derive(Debug, Deserialize)]
-pub struct CreateOrganisationPayload {
-    name: String,
-    organisation_identifier: Option<String>,
-    locale: String,
-}
+use crate::{db::Pool, MainmanResult};
 
 pub async fn get_organisation(
     pool: Data<Pool>,
-    organisation: Path<i32>,
-) -> Result<Json<Organisation>, Error> {
-    let organisation = block(move || find(&pool, *organisation)).await?;
-    Ok(Json(organisation))
+    organisation_id: Path<i32>,
+) -> MainmanResult<Json<Organisation>> {
+    Ok(Json(Organisation::get(*organisation_id, &pool.get()?)?))
 }
 
 pub async fn get_organisations(
     pool: Data<Pool>,
     authentication_details: crate::auth::AuthenticationDetails,
-) -> Result<Json<Vec<Organisation>>, Error> {
-    let organisation =
-        block(move || get_all(&pool, authentication_details.account_id))
-            .await?;
-    Ok(Json(organisation))
+) -> MainmanResult<Json<Vec<Organisation>>> {
+    Ok(Json(Organisation::all(
+        authentication_details.account_id,
+        &pool.get()?,
+    )?))
 }
 
 pub async fn create_organisation(
     pool: Data<Pool>,
-    payload: Json<CreateOrganisationPayload>,
+    payload: Json<NewOrganisation>,
     authentication_details: crate::auth::AuthenticationDetails,
-) -> Result<Json<Organisation>, Error> {
-    let organisation = block(move || {
-        create(
-            &pool,
-            CreateOrganisation {
-                admin_account: authentication_details.account_id,
-                name: &payload.name,
-                organisation_identifier: payload
-                    .organisation_identifier
-                    .as_deref()
-                    .unwrap_or(""),
-                locale: &payload.locale,
-            },
-        )
-    })
-    .await?;
-    Ok(Json(organisation))
+) -> MainmanResult<Json<Organisation>> {
+    Ok(Json(
+        NewOrganisation {
+            admin_account: authentication_details.account_id,
+            ..payload.into_inner()
+        }
+        .create(&pool.get()?)?,
+    ))
 }
 
-pub async fn patch_organisation(
+pub async fn patch_organisation<'a>(
     pool: Data<Pool>,
     payload: Json<PatchOrganisation>,
-    organisation: Path<i32>,
-) -> Result<Json<Organisation>, Error> {
-    let organisation_res = block(move || {
-        patch(
-            &pool,
-            &PatchOrganisation {
-                id: *organisation,
-                ..payload.into_inner()
-            },
-        )
-    })
-    .await?;
-    Ok(Json(organisation_res))
+    organisation_id: Path<i32>,
+) -> MainmanResult<Json<Organisation>> {
+    let conn = &pool.get()?;
+    Ok(Json(
+        Organisation::get(*organisation_id, &conn)?.patch(&payload, &conn)?,
+    ))
 }
