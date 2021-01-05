@@ -24,7 +24,7 @@ pub async fn create_account(
         last_name: &payload.last_name.to_title_case(),
         password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
     }
-    .insert(&pool.get()?)?
+    .create(&pool.get()?)?
     .into())
 }
 

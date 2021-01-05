@@ -69,7 +69,7 @@ impl Entity {
 }
 
 impl Creatable<Entity> for NewEntity {
-    fn insert(&self, conn: &Connection) -> MainmanResult<Entity> {
+    fn create(&self, conn: &Connection) -> MainmanResult<Entity> {
         Ok(diesel::insert_into(entity::table)
             .values(self)
             .get_result::<Entity>(conn)?)

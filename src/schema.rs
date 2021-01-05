@@ -47,6 +47,7 @@ table! {
     maintainer_entity (entity, maintainer) {
         entity -> Uuid,
         maintainer -> Int4,
+        organisation -> Int4,
     }
 }
 
@@ -108,8 +109,6 @@ joinable!(account_role -> organisation (organisation));
 joinable!(entity -> organisation (organisation));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
-joinable!(maintainer_entity -> entity (entity));
-joinable!(maintainer_entity -> maintainer (maintainer));
 joinable!(maintenance_event -> entity (entity));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));

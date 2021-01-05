@@ -92,7 +92,7 @@ impl Organisation {
 }
 
 impl Creatable<Organisation> for NewOrganisation {
-    fn insert(&self, conn: &Connection) -> MainmanResult<Organisation> {
+    fn create(&self, conn: &Connection) -> MainmanResult<Organisation> {
         Ok(diesel::insert_into(organisation::table)
             .values(self)
             .get_result::<Organisation>(conn)?)

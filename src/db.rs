@@ -16,5 +16,5 @@ pub fn get_pool() -> Pool {
 }
 
 pub trait Creatable<T> {
-    fn insert(&self, conn: &Connection) -> MainmanResult<T>;
+    fn create(&self, conn: &Connection) -> MainmanResult<T>;
 }

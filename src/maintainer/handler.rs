@@ -29,11 +29,11 @@ pub async fn create_maintainer(
         organisation: *organisation_id,
         ..payload.into_inner()
     }
-    .insert(&pool.get()?)?
+    .create(&pool.get()?)?
     .into())
 }
 
-#[patch("{hash}")]
+#[patch("{maintainer_id}")]
 pub async fn patch_maintainer(
     pool: Data<Pool>,
     payload: Json<PatchMaintainer>,
@@ -42,5 +42,23 @@ pub async fn patch_maintainer(
     let conn = &pool.get()?;
     Ok(Maintainer::get(path.1, &conn)?
         .patch(&payload, &conn)?
+        .into())
+}
+
+#[post("{maintainer_id}/entities")]
+pub async fn add_entities(
+    pool: Data<Pool>,
+    payload: Json<Vec<Uuid>>,
+    path: Path<(i32, i32)>,
+) -> MainmanResponse<Vec<MaintainerEntity>> {
+    Ok(payload
+        .iter()
+        .map(|entity| MaintainerEntity {
+            organisation: (*path).0,
+            maintainer: (*path).1,
+            entity: *entity,
+        })
+        .collect::<Vec<_>>()
+        .create(&pool.get()?)?
         .into())
 }

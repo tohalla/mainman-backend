@@ -27,13 +27,24 @@ pub struct Maintainer {
     pub details: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Queryable, Associations)]
+#[derive(
+    Debug,
+    Deserialize,
+    Serialize,
+    Queryable,
+    Associations,
+    Insertable,
+    Identifiable,
+)]
 #[table_name = "maintainer_entity"]
+#[primary_key(maintainer, entity)]
 #[belongs_to(Maintainer, foreign_key = "maintainer")]
 #[belongs_to(Entity, foreign_key = "entity")]
 pub struct MaintainerEntity {
-    pub maintainer: i32,
     pub entity: Uuid,
+    pub maintainer: i32,
+    #[serde(skip)]
+    pub organisation: i32,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
@@ -82,9 +93,28 @@ impl Maintainer {
 }
 
 impl Creatable<Maintainer> for NewMaintainer {
-    fn insert(&self, conn: &Connection) -> MainmanResult<Maintainer> {
+    fn create(&self, conn: &Connection) -> MainmanResult<Maintainer> {
         Ok(diesel::insert_into(maintainer::table)
             .values(self)
             .get_result::<Maintainer>(conn)?)
+    }
+}
+
+impl Creatable<MaintainerEntity> for MaintainerEntity {
+    fn create(&self, conn: &Connection) -> MainmanResult<MaintainerEntity> {
+        Ok(diesel::insert_into(maintainer_entity::table)
+            .values(self)
+            .get_result::<MaintainerEntity>(conn)?)
+    }
+}
+
+impl Creatable<Vec<MaintainerEntity>> for [MaintainerEntity] {
+    fn create(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<MaintainerEntity>> {
+        Ok(diesel::insert_into(maintainer_entity::table)
+            .values(self)
+            .load::<MaintainerEntity>(conn)?)
     }
 }

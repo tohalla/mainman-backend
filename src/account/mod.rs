@@ -38,7 +38,7 @@ impl Account {
 }
 
 impl Creatable<Account> for NewAccount<'_> {
-    fn insert(&self, conn: &Connection) -> MainmanResult<Account> {
+    fn create(&self, conn: &Connection) -> MainmanResult<Account> {
         Ok(diesel::insert_into(account::dsl::account)
             .values(self)
             .get_result::<Account>(conn)?)
