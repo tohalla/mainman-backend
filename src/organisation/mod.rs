@@ -3,7 +3,7 @@ use diesel::prelude::*;
 
 use crate::{
     account::Account,
-    db::Connection,
+    db::{Connection, Creatable},
     schema::{organisation, organisation_account},
     MainmanResult,
 };
@@ -91,8 +91,8 @@ impl Organisation {
     }
 }
 
-impl NewOrganisation {
-    pub fn create(&self, conn: &Connection) -> MainmanResult<Organisation> {
+impl Creatable<Organisation> for NewOrganisation {
+    fn insert(&self, conn: &Connection) -> MainmanResult<Organisation> {
         Ok(diesel::insert_into(organisation::table)
             .values(self)
             .get_result::<Organisation>(conn)?)

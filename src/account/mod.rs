@@ -1,7 +1,11 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{db::Connection, schema::account, MainmanResult};
+use crate::{
+    db::{Connection, Creatable},
+    schema::account,
+    MainmanResult,
+};
 
 pub mod handler;
 pub mod routes;
@@ -33,8 +37,8 @@ impl Account {
     }
 }
 
-impl<'a> NewAccount<'a> {
-    pub fn insert(&self, conn: &Connection) -> MainmanResult<Account> {
+impl Creatable<Account> for NewAccount<'_> {
+    fn insert(&self, conn: &Connection) -> MainmanResult<Account> {
         Ok(diesel::insert_into(account::dsl::account)
             .values(self)
             .get_result::<Account>(conn)?)

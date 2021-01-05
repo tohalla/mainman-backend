@@ -2,7 +2,12 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::{db::Connection, error::Error, schema::entity, MainmanResult};
+use crate::{
+    db::{Connection, Creatable},
+    error::Error,
+    schema::entity,
+    MainmanResult,
+};
 
 pub mod handler;
 pub mod routes;
@@ -63,8 +68,8 @@ impl Entity {
     }
 }
 
-impl NewEntity {
-    pub fn insert(&self, conn: &Connection) -> MainmanResult<Entity> {
+impl Creatable<Entity> for NewEntity {
+    fn insert(&self, conn: &Connection) -> MainmanResult<Entity> {
         Ok(diesel::insert_into(entity::table)
             .values(self)
             .get_result::<Entity>(conn)?)

@@ -21,7 +21,7 @@ pub async fn create_organisation(
         admin_account: claim.account_id,
         ..payload.into_inner()
     }
-    .create(&pool.get()?)?
+    .insert(&pool.get()?)?
     .into())
 }
 

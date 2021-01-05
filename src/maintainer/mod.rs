@@ -4,7 +4,7 @@ use serde_json;
 use uuid::Uuid;
 
 use crate::{
-    db::Connection,
+    db::{Connection, Creatable},
     entity::Entity,
     error::Error,
     schema::{maintainer, maintainer_entity},
@@ -81,8 +81,8 @@ impl Maintainer {
     }
 }
 
-impl NewMaintainer {
-    pub fn insert(&self, conn: &Connection) -> MainmanResult<Maintainer> {
+impl Creatable<Maintainer> for NewMaintainer {
+    fn insert(&self, conn: &Connection) -> MainmanResult<Maintainer> {
         Ok(diesel::insert_into(maintainer::table)
             .values(self)
             .get_result::<Maintainer>(conn)?)

@@ -2,7 +2,7 @@ use actix_web::web::{Data, Json, Path};
 use bcrypt::{hash, DEFAULT_COST};
 use heck::TitleCase;
 
-use super::{Account, NewAccount};
+use super::*;
 use crate::{db::Pool, MainmanResponse};
 
 #[derive(Clone, Debug, Deserialize)]
