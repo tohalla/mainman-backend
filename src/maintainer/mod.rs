@@ -40,6 +40,7 @@ pub struct MaintainerEntity {
 #[table_name = "maintainer"]
 pub struct NewMaintainer {
     account: Option<i32>,
+    #[serde(skip_deserializing)]
     organisation: i32,
     details: Option<serde_json::Value>,
 }

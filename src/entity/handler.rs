@@ -7,9 +7,9 @@ use crate::{db::Pool, MainmanResponse};
 #[get("{hash}")]
 pub async fn get_entity(
     pool: Data<Pool>,
-    hash: Path<Uuid>,
+    path: Path<(i32, Uuid)>,
 ) -> MainmanResponse<Entity> {
-    Ok(Entity::get(*hash, &pool.get()?)?.into())
+    Ok(Entity::get(path.1, &pool.get()?)?.into())
 }
 
 #[get("")]
@@ -38,8 +38,8 @@ pub async fn create_entity(
 pub async fn patch_entity(
     pool: Data<Pool>,
     payload: Json<PatchEntity>,
-    hash: Path<Uuid>,
+    path: Path<(i32, Uuid)>,
 ) -> MainmanResponse<Entity> {
     let conn = &pool.get()?;
-    Ok(Entity::get(*hash, &conn)?.patch(&payload, &conn)?.into())
+    Ok(Entity::get(path.1, &conn)?.patch(&payload, &conn)?.into())
 }

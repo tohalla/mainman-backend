@@ -6,9 +6,9 @@ use crate::{db::Pool, MainmanResponse};
 #[get("{maintainer_id}")]
 pub async fn get_maintainer(
     pool: Data<Pool>,
-    maintainer_id: Path<i32>,
+    path: Path<(i32, i32)>,
 ) -> MainmanResponse<Maintainer> {
-    Ok(Maintainer::get(*maintainer_id, &pool.get()?)?.into())
+    Ok(Maintainer::get(path.1, &pool.get()?)?.into())
 }
 
 #[get("")]
@@ -37,10 +37,10 @@ pub async fn create_maintainer(
 pub async fn patch_maintainer(
     pool: Data<Pool>,
     payload: Json<PatchMaintainer>,
-    maintainer_id: Path<i32>,
+    path: Path<(i32, i32)>,
 ) -> MainmanResponse<Maintainer> {
     let conn = &pool.get()?;
-    Ok(Maintainer::get(*maintainer_id, &conn)?
+    Ok(Maintainer::get(path.1, &conn)?
         .patch(&payload, &conn)?
         .into())
 }
