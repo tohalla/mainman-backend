@@ -2,7 +2,11 @@ use actix_web::web::{Data, Json, Path};
 use uuid::Uuid;
 
 use super::*;
-use crate::{db::Pool, maintainer::MaintainerEntity, MainmanResponse};
+use crate::{
+    db::Pool,
+    maintainer::{Maintainer, MaintainerEntity},
+    MainmanResponse,
+};
 
 #[get("{hash}")]
 pub async fn get_entity(
@@ -42,6 +46,14 @@ pub async fn patch_entity(
 ) -> MainmanResponse<Entity> {
     let conn = &pool.get()?;
     Ok(Entity::get(path.1, &conn)?.patch(&payload, &conn)?.into())
+}
+
+#[get("{hash}/maintainers")]
+pub async fn maintainers(
+    pool: Data<Pool>,
+    path: Path<(i32, Uuid)>,
+) -> MainmanResponse<Vec<Maintainer>> {
+    Ok(Maintainer::by_entity(&path.1, &pool.get()?)?.into())
 }
 
 #[post("{hash}/maintainers")]

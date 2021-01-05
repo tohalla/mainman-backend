@@ -7,7 +7,7 @@ use crate::{
     db::{Connection, Creatable},
     entity::Entity,
     error::Error,
-    schema::{maintainer, maintainer_entity},
+    schema::{entity, maintainer, maintainer_entity},
     MainmanResult,
 };
 
@@ -47,6 +47,9 @@ pub struct MaintainerEntity {
     pub organisation: i32,
 }
 
+joinable!(maintainer_entity -> maintainer(maintainer));
+joinable!(maintainer_entity -> entity(entity));
+
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintainer"]
 pub struct NewMaintainer {
@@ -74,9 +77,21 @@ impl Maintainer {
         conn: &Connection,
     ) -> MainmanResult<Vec<Maintainer>> {
         use crate::schema::maintainer::dsl;
-
         Ok(dsl::maintainer
             .filter(dsl::organisation.eq(organisation))
+            .load::<Maintainer>(conn)
+            .map_err(|_| Error::NotFoundError)?)
+    }
+
+    pub fn by_entity(
+        hash: &uuid::Uuid,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<Maintainer>> {
+        use crate::schema::maintainer_entity::dsl;
+        Ok(maintainer_entity::table
+            .inner_join(maintainer::table)
+            .filter(dsl::entity.eq(hash))
+            .select(maintainer::all_columns)
             .load::<Maintainer>(conn)
             .map_err(|_| Error::NotFoundError)?)
     }

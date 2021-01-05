@@ -1,7 +1,7 @@
 use actix_web::web::{Data, Json, Path};
 
 use super::*;
-use crate::{db::Pool, MainmanResponse};
+use crate::{db::Pool, entity::Entity, MainmanResponse};
 
 #[get("{maintainer_id}")]
 pub async fn get_maintainer(
@@ -43,6 +43,14 @@ pub async fn patch_maintainer(
     Ok(Maintainer::get(path.1, &conn)?
         .patch(&payload, &conn)?
         .into())
+}
+
+#[get("{maintainer_id}/entities")]
+pub async fn entities(
+    pool: Data<Pool>,
+    path: Path<(i32, i32)>,
+) -> MainmanResponse<Vec<Entity>> {
+    Ok(Entity::by_maintainer(path.1, &pool.get()?)?.into())
 }
 
 #[post("{maintainer_id}/entities")]

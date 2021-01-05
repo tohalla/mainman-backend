@@ -12,7 +12,9 @@ use crate::{
 pub mod handler;
 pub mod routes;
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(
+    Debug, Associations, Serialize, Deserialize, Queryable, Identifiable,
+)]
 #[table_name = "entity"]
 #[primary_key(hash)]
 pub struct Entity {
@@ -53,6 +55,19 @@ impl Entity {
 
         Ok(dsl::entity
             .filter(dsl::organisation.eq(organisation))
+            .load::<Entity>(conn)
+            .map_err(|_| Error::NotFoundError)?)
+    }
+
+    pub fn by_maintainer(
+        id: i32,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<Entity>> {
+        use crate::schema::maintainer_entity::dsl;
+        Ok(dsl::maintainer_entity
+            .inner_join(entity::table)
+            .filter(dsl::maintainer.eq(id))
+            .select(entity::all_columns)
             .load::<Entity>(conn)
             .map_err(|_| Error::NotFoundError)?)
     }
