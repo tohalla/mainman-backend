@@ -14,19 +14,19 @@ pub async fn get_maintainer(
 #[get("")]
 pub async fn get_maintainers(
     pool: Data<Pool>,
-    organisation: Path<i32>,
+    organisation_id: Path<i32>,
 ) -> MainmanResponse<Vec<Maintainer>> {
-    Ok(Maintainer::by_organisation(*organisation, &pool.get()?)?.into())
+    Ok(Maintainer::by_organisation(*organisation_id, &pool.get()?)?.into())
 }
 
 #[post("")]
 pub async fn create_maintainer(
     pool: Data<Pool>,
     payload: Json<NewMaintainer>,
-    organisation: Path<i32>,
+    organisation_id: Path<i32>,
 ) -> MainmanResponse<Maintainer> {
     Ok(NewMaintainer {
-        organisation: *organisation,
+        organisation: *organisation_id,
         ..payload.into_inner()
     }
     .insert(&pool.get()?)?
