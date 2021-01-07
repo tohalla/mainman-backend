@@ -98,11 +98,11 @@ fn check_organisation(
     match path_info.organisation_id {
         Some(organisation_id) => {
             let admin_account = organisation::dsl::organisation
-                .left_join(organisation_account::table.on(
-                    organisation_account::organisation.eq(organisation_id).and(
-                        organisation_account::account.eq(claim.account_id),
-                    ),
-                ))
+                .left_join(
+                    organisation_account::table
+                        .on(organisation_account::account.eq(claim.account_id)),
+                )
+                .filter(organisation::dsl::id.eq(organisation_id))
                 .select(organisation::admin_account)
                 .first::<i32>(conn);
             if let Ok(admin_account) = admin_account {
