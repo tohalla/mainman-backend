@@ -68,8 +68,15 @@ pub struct PatchMaintainer {
 }
 
 impl Maintainer {
-    pub fn get(id: i32, conn: &Connection) -> MainmanResult<Maintainer> {
-        Ok(maintainer::table.find(id).first::<Maintainer>(conn)?)
+    pub fn get(
+        id: i32,
+        organisation: i32,
+        conn: &Connection,
+    ) -> MainmanResult<Maintainer> {
+        Ok(maintainer::table
+            .find(id)
+            .filter(maintainer::organisation.eq(organisation))
+            .first::<Maintainer>(conn)?)
     }
 
     pub fn by_organisation(
@@ -83,16 +90,11 @@ impl Maintainer {
             .map_err(|_| Error::NotFoundError)?)
     }
 
-    pub fn by_entity(
-        hash: &uuid::Uuid,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<Maintainer>> {
-        use crate::schema::maintainer_entity::dsl;
-        Ok(maintainer_entity::table
-            .inner_join(maintainer::table)
-            .filter(dsl::entity.eq(hash))
-            .select(maintainer::all_columns)
-            .load::<Maintainer>(conn)
+    pub fn entities(&self, conn: &Connection) -> MainmanResult<Vec<Entity>> {
+        Ok(MaintainerEntity::belonging_to(self)
+            .inner_join(entity::table)
+            .select(entity::all_columns)
+            .load::<Entity>(conn)
             .map_err(|_| Error::NotFoundError)?)
     }
 

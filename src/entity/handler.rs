@@ -13,7 +13,7 @@ pub async fn get_entity(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,
 ) -> MainmanResponse<Entity> {
-    Ok(Entity::get(path.1, &pool.get()?)?.into())
+    Ok(Entity::get((*path).1, (*path).0, &pool.get()?)?.into())
 }
 
 #[get("")]
@@ -45,7 +45,9 @@ pub async fn patch_entity(
     path: Path<(i32, Uuid)>,
 ) -> MainmanResponse<Entity> {
     let conn = &pool.get()?;
-    Ok(Entity::get(path.1, &conn)?.patch(&payload, &conn)?.into())
+    Ok(Entity::get((*path).1, (*path).0, &conn)?
+        .patch(&payload, &conn)?
+        .into())
 }
 
 #[get("{hash}/maintainers")]
@@ -53,7 +55,10 @@ pub async fn maintainers(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,
 ) -> MainmanResponse<Vec<Maintainer>> {
-    Ok(Maintainer::by_entity(&path.1, &pool.get()?)?.into())
+    let conn = &pool.get()?;
+    Ok(Entity::get((*path).1, (*path).0, &conn)?
+        .maintainers(&conn)?
+        .into())
 }
 
 #[post("{hash}/maintainers")]
@@ -62,14 +67,17 @@ pub async fn add_maintainers(
     payload: Json<Vec<i32>>,
     path: Path<(i32, Uuid)>,
 ) -> MainmanResponse<Vec<MaintainerEntity>> {
+    let conn = &pool.get()?;
+    // sepparate fetch for checking access to entity
+    let entity = Entity::get((*path).1, (*path).0, &conn)?;
     Ok(payload
         .iter()
         .map(|maintainer| MaintainerEntity {
             organisation: (*path).0,
-            entity: (*path).1,
+            entity: entity.hash,
             maintainer: *maintainer,
         })
         .collect::<Vec<_>>()
-        .create(&pool.get()?)?
+        .create(&conn)?
         .into())
 }

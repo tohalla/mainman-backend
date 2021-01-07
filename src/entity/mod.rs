@@ -5,7 +5,8 @@ use uuid::Uuid;
 use crate::{
     db::{Connection, Creatable},
     error::Error,
-    schema::entity,
+    maintainer::{Maintainer, MaintainerEntity},
+    schema::{entity, maintainer},
     MainmanResult,
 };
 
@@ -43,8 +44,15 @@ pub struct PatchEntity {
 }
 
 impl Entity {
-    pub fn get(hash: Uuid, conn: &Connection) -> MainmanResult<Entity> {
-        Ok(entity::table.find(hash).first::<Entity>(conn)?)
+    pub fn get(
+        hash: Uuid,
+        organisation: i32,
+        conn: &Connection,
+    ) -> MainmanResult<Entity> {
+        Ok(entity::table
+            .find(hash)
+            .filter(entity::organisation.eq(organisation))
+            .first::<Entity>(conn)?)
     }
 
     pub fn by_organisation(
@@ -59,16 +67,14 @@ impl Entity {
             .map_err(|_| Error::NotFoundError)?)
     }
 
-    pub fn by_maintainer(
-        id: i32,
+    pub fn maintainers(
+        &self,
         conn: &Connection,
-    ) -> MainmanResult<Vec<Entity>> {
-        use crate::schema::maintainer_entity::dsl;
-        Ok(dsl::maintainer_entity
-            .inner_join(entity::table)
-            .filter(dsl::maintainer.eq(id))
-            .select(entity::all_columns)
-            .load::<Entity>(conn)
+    ) -> MainmanResult<Vec<Maintainer>> {
+        Ok(MaintainerEntity::belonging_to(self)
+            .inner_join(maintainer::table)
+            .select(maintainer::all_columns)
+            .load::<Maintainer>(conn)
             .map_err(|_| Error::NotFoundError)?)
     }
 
