@@ -1,1 +1,1 @@
-pub static AUTH_TOKEN_PREFIX: &str = "bearer ";
+pub static AUTH_TOKEN_PREFIX: &str = "Bearer ";
