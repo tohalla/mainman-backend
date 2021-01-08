@@ -9,6 +9,7 @@ use crate::{
 };
 
 pub mod handler;
+pub mod plan;
 pub mod routes;
 
 #[derive(
@@ -29,6 +30,7 @@ pub struct Organisation {
     pub organisation_identifier: Option<String>,
     pub locale: String,
     pub admin_account: i32,
+    pub plan: i32,
 }
 
 #[derive(Identifiable, Queryable, Associations)]

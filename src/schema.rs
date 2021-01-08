@@ -84,15 +84,26 @@ table! {
         organisation_identifier -> Nullable<Varchar>,
         locale -> Varchar,
         admin_account -> Int4,
+        plan -> Nullable<Int4>,
     }
 }
 
 table! {
-    organisation_account (id) {
-        id -> Int4,
+    organisation_account (account, organisation) {
         account -> Int4,
         organisation -> Int4,
         account_role -> Int4,
+    }
+}
+
+table! {
+    plan (id) {
+        id -> Int4,
+        name -> Text,
+        entities -> Nullable<Int4>,
+        maintainers -> Nullable<Int4>,
+        accounts -> Nullable<Int4>,
+        is_public -> Bool,
     }
 }
 
@@ -113,6 +124,7 @@ joinable!(maintenance_event -> entity (entity));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));
 joinable!(organisation -> account (admin_account));
+joinable!(organisation -> plan (plan));
 joinable!(organisation_account -> account (account));
 joinable!(organisation_account -> account_role (account_role));
 joinable!(organisation_account -> organisation (organisation));
@@ -128,5 +140,6 @@ allow_tables_to_appear_in_same_query!(
     maintenance_task,
     organisation,
     organisation_account,
+    plan,
     refresh_token,
 );
