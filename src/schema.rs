@@ -84,7 +84,7 @@ table! {
         organisation_identifier -> Nullable<Varchar>,
         locale -> Varchar,
         admin_account -> Int4,
-        plan -> Nullable<Int4>,
+        plan -> Int4,
     }
 }
 

@@ -7,7 +7,7 @@ CREATE TABLE plan (
   is_public boolean NOT NULL DEFAULT false
 );
 
-ALTER TABLE organisation ADD COLUMN plan integer REFERENCES plan(id);
+ALTER TABLE organisation ADD COLUMN plan integer NOT NULL REFERENCES plan(id);
 
 CREATE UNIQUE INDEX name ON plan (LOWER(name));
 
