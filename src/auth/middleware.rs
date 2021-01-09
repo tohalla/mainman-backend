@@ -1,7 +1,6 @@
 use actix_service::{Service, Transform};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
-    http::header,
     web::Data,
     HttpMessage, HttpResponse,
 };
@@ -162,7 +161,7 @@ where
 
         if let Ok(claim) = Claim::from_identity(authentication_token.to_owned())
         {
-            if let Ok(_) = check_access(&claim, &path_info, &conn) {
+            if check_access(&claim, &path_info, &conn).is_ok() {
                 return Box::pin(async move { Ok(service.call(req).await?) });
             }
         }
@@ -176,16 +175,17 @@ where
                         &conn,
                     )
                 {
-                    if let Ok(cookies) = AuthCookies::cookies(&claim, &conn) {
-                        let path = req.path().to_owned();
-                        return Box::pin(ok(req.into_response(
-                            HttpResponse::TemporaryRedirect()
-                                .cookie(cookies.auth)
-                                .cookie(cookies.refresh)
-                                .header(header::LOCATION, path)
-                                .finish()
-                                .into_body(),
-                        )));
+                    if check_access(&claim, &path_info, &conn).is_ok() {
+                        if let Ok(cookies) = AuthCookies::cookies(&claim, &conn)
+                        {
+                            return Box::pin(async move {
+                                let mut res = service.call(req).await?;
+                                res.response_mut().add_cookie(&cookies.auth)?;
+                                res.response_mut()
+                                    .add_cookie(&cookies.refresh)?;
+                                Ok(res)
+                            });
+                        }
                     }
                 }
             }
