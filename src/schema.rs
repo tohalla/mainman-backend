@@ -57,6 +57,16 @@ table! {
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         resolved_at -> Nullable<Timestamp>,
+        description -> Nullable<Text>,
+        maintenance_request -> Nullable<Int8>,
+    }
+}
+
+table! {
+    maintenance_request (id) {
+        id -> Int8,
+        created_at -> Timestamp,
+        created_by -> Nullable<Int4>,
         entity -> Uuid,
         description -> Nullable<Text>,
     }
@@ -120,7 +130,9 @@ joinable!(account_role -> organisation (organisation));
 joinable!(entity -> organisation (organisation));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
-joinable!(maintenance_event -> entity (entity));
+joinable!(maintenance_event -> maintenance_request (maintenance_request));
+joinable!(maintenance_request -> account (created_by));
+joinable!(maintenance_request -> entity (entity));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));
 joinable!(organisation -> account (admin_account));
@@ -137,6 +149,7 @@ allow_tables_to_appear_in_same_query!(
     maintainer,
     maintainer_entity,
     maintenance_event,
+    maintenance_request,
     maintenance_task,
     organisation,
     organisation_account,

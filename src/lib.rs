@@ -18,6 +18,7 @@ mod entity;
 mod error;
 mod health;
 mod maintainer;
+mod maintenance;
 mod organisation;
 mod response;
 mod routes;

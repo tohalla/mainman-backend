@@ -50,6 +50,7 @@ pub struct NewOrganisation {
     name: String,
     organisation_identifier: String,
     locale: String,
+    plan: i32,
     #[serde(skip_deserializing)]
     admin_account: i32,
 }
