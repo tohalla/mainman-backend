@@ -62,7 +62,6 @@ pub struct NewMaintainer {
 #[derive(Debug, Deserialize, AsChangeset)]
 #[table_name = "maintainer"]
 pub struct PatchMaintainer {
-    id: i32,
     account: Option<i32>,
     details: Option<serde_json::Value>,
 }
