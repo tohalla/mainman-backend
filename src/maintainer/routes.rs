@@ -6,5 +6,6 @@ pub fn organisation_routes(cfg: &mut web::ServiceConfig) {
         .service(super::handler::get_maintainer)
         .service(super::handler::patch_maintainer)
         .service(super::handler::entities)
+        .service(super::handler::delete_entities)
         .service(super::handler::add_entities);
 }

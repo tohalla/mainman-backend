@@ -106,6 +106,22 @@ impl Maintainer {
             .set(payload)
             .get_result::<Maintainer>(conn)?)
     }
+
+    pub fn delete_entities(
+        &self,
+        payload: &Vec<Uuid>,
+        conn: &Connection,
+    ) -> MainmanResult<()> {
+        diesel::delete(
+            maintainer_entity::table.filter(
+                maintainer_entity::maintainer
+                    .eq(self.id)
+                    .and(maintainer_entity::entity.eq_any(payload)),
+            ),
+        )
+        .execute(conn)?;
+        Ok(())
+    }
 }
 
 impl Creatable<Maintainer> for NewMaintainer {
