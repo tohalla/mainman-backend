@@ -6,7 +6,7 @@ use crate::{
     db::{Connection, Creatable},
     error::Error,
     maintainer::{Maintainer, MaintainerEntity},
-    schema::{entity, maintainer},
+    schema::{entity, maintainer, maintainer_entity},
     MainmanResult,
 };
 
@@ -86,6 +86,22 @@ impl Entity {
         Ok(diesel::update(self)
             .set(payload)
             .get_result::<Entity>(conn)?)
+    }
+
+    pub fn delete_maintainers(
+        &self,
+        payload: &Vec<i32>,
+        conn: &Connection,
+    ) -> MainmanResult<()> {
+        diesel::delete(
+            maintainer_entity::table.filter(
+                maintainer_entity::entity
+                    .eq(self.hash)
+                    .and(maintainer_entity::maintainer.eq_any(payload)),
+            ),
+        )
+        .execute(conn)?;
+        Ok(())
     }
 }
 

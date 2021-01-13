@@ -1,11 +1,14 @@
-use actix_web::web::{Data, Json, Path};
+use actix_web::{
+    web::{Data, Json, Path},
+    HttpResponse,
+};
 use uuid::Uuid;
 
 use super::*;
 use crate::{
     db::Pool,
     maintainer::{Maintainer, MaintainerEntity},
-    MainmanResponse,
+    MainmanResponse, MainmanResult,
 };
 
 #[get("{hash}")]
@@ -80,4 +83,16 @@ pub async fn add_maintainers(
         .collect::<Vec<_>>()
         .create(&conn)?
         .into())
+}
+
+#[delete("{hash}/maintainers")]
+pub async fn delete_maintainers(
+    pool: Data<Pool>,
+    payload: Json<Vec<i32>>,
+    path: Path<(i32, Uuid)>,
+) -> MainmanResult<HttpResponse> {
+    let conn = &pool.get()?;
+    Entity::get((*path).1, (*path).0, &conn)?
+        .delete_maintainers(&*payload, &conn)?;
+    Ok(HttpResponse::Ok().finish())
 }
