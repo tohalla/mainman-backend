@@ -7,6 +7,7 @@ table! {
         last_name -> Nullable<Varchar>,
         email -> Varchar,
         password -> Bytea,
+        stripe_customer -> Nullable<Text>,
     }
 }
 
