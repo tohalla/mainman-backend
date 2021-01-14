@@ -6,8 +6,8 @@ services:
       dockerfile: Dockerfile.dev
     command: cargo watch -x run
     volumes:
-      - ./src:/usr/src/mainman/src
-      - ./Cargo.toml:/usr/src/mainman/Cargo.toml
+      - ./mainman:/usr/mainman/mainman
+      - ./Cargo.toml:/usr/mainman/Cargo.toml
     environment:
       - RUST_BACKTRACE=1
       - RUST_LOG=mainman=debug,actix_web=info

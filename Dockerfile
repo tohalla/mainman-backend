@@ -1,6 +1,6 @@
 FROM rust:1
 
-WORKDIR /usr/src/mainman
+WORKDIR /usr/mainman
 COPY . .
 
 RUN cargo install --path .
