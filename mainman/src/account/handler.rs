@@ -1,6 +1,10 @@
 use actix_web::web::{Data, Json, Path};
 use bcrypt::{hash, DEFAULT_COST};
 use heck::TitleCase;
+use stripe::{
+    customer::{Customer, NewCustomer},
+    Client,
+};
 
 use super::*;
 use crate::{db::Pool, MainmanResponse};
@@ -28,9 +32,32 @@ pub async fn create_account(
     .into())
 }
 
+#[get("{account_id}")]
 pub async fn get_account(
     pool: Data<Pool>,
     account_id: Path<i32>,
 ) -> MainmanResponse<Account> {
     Ok(Account::get(*account_id, &pool.get()?)?.into())
+}
+
+#[get("{account_id}/stripe")]
+pub async fn get_customer_details(
+    pool: Data<Pool>,
+    account_id: Path<i32>,
+) -> MainmanResponse<Customer> {
+    let conn = &pool.get()?;
+    let account = Account::get(*account_id, conn)?;
+
+    if let Some(customer) = account.stripe_customer {
+        return Ok(Customer::get(&Client::new(), customer).await?.into());
+    }
+    let customer = NewCustomer {
+        email: &account.email,
+    }
+    .create(&Client::new())
+    .await?;
+
+    account.set_stripe_customer(conn, customer.id.to_owned())?;
+
+    Ok(customer.into())
 }

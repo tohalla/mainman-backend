@@ -8,6 +8,7 @@ services:
     volumes:
       - ./mainman:/usr/mainman/mainman
       - ./Cargo.toml:/usr/mainman/Cargo.toml
+      - ./stripe:/usr/mainman/stripe
     environment:
       - RUST_BACKTRACE=1
       - RUST_LOG=mainman=debug,actix_web=info

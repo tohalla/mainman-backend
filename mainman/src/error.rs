@@ -18,6 +18,7 @@ pub enum Error {
     JWTError(jsonwebtoken::errors::Error),
     EncodingError(String),
     InternalServerError(Option<String>),
+    StripeError(stripe::error::Error),
 }
 
 impl ResponseError for Error {
@@ -85,5 +86,11 @@ impl From<std::str::Utf8Error> for Error {
 impl From<jsonwebtoken::errors::Error> for Error {
     fn from(error: jsonwebtoken::errors::Error) -> Error {
         Error::JWTError(error)
+    }
+}
+
+impl From<stripe::error::Error> for Error {
+    fn from(error: stripe::error::Error) -> Error {
+        Error::StripeError(error)
     }
 }
