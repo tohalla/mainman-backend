@@ -23,6 +23,7 @@ pub struct Account {
     pub email: String,
     #[serde(skip)]
     pub password: Vec<u8>,
+    #[serde(skip)]
     pub stripe_customer: Option<String>,
 }
 
