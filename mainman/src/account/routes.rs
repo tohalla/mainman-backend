@@ -5,7 +5,7 @@ use crate::auth::middleware::RequireAuthentication;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(super::handler::create_account).service(
-        web::scope("")
+        web::scope("{account_id}")
             .wrap(RequireAuthentication::default())
             .service(handler::get_account)
             .service(handler::get_customer_details),
