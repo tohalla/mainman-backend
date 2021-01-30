@@ -32,7 +32,7 @@ pub async fn create_account(
     .into())
 }
 
-#[get("{account_id}")]
+#[get("")]
 pub async fn get_account(
     pool: Data<Pool>,
     account_id: Path<i32>,
@@ -40,7 +40,7 @@ pub async fn get_account(
     Ok(Account::get(*account_id, &pool.get()?)?.into())
 }
 
-#[get("{account_id}/stripe")]
+#[get("stripe")]
 pub async fn get_customer_details(
     pool: Data<Pool>,
     account_id: Path<i32>,

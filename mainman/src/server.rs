@@ -5,11 +5,9 @@ use actix_web::{
 };
 
 pub async fn start() -> std::io::Result<()> {
-    let pool = super::db::get_pool();
-
     HttpServer::new(move || {
         App::new()
-            .data(pool.clone())
+            .data(super::db::get_pool())
             .configure(super::cache::add_cache)
             .wrap(Cors::new().supports_credentials().finish())
             .wrap(NormalizePath::new(TrailingSlash::Trim))

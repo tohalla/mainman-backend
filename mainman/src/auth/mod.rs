@@ -47,7 +47,7 @@ impl Claim {
             &Header::default(),
             &self,
             &EncodingKey::from_secret(
-                std::env::var("JWT_KEY").unwrap().as_ref(),
+                std::env::var("JWT_KEY").unwrap_or("".to_owned()).as_ref(),
             ),
         )
         .map_err(|_| Error::InternalServerError(None))
@@ -100,18 +100,10 @@ impl<'a> AuthCookies<'a> {
         let authentication_token = claim.jwt()?;
 
         Ok(AuthCookies {
-            auth: Self::decorate(Cookie::build(
-                "authorization",
-                format!(
-                    "{}{}",
-                    config::AUTH_TOKEN_PREFIX,
-                    authentication_token.clone()
-                ),
-            ))
-            .finish(),
+            auth: Self::auth_cookie(&authentication_token),
             refresh: AuthCookies::refresh_cookie(
                 claim,
-                authentication_token,
+                &authentication_token,
                 conn,
             )?,
         })
@@ -133,9 +125,17 @@ impl<'a> AuthCookies<'a> {
         }
     }
 
+    pub fn auth_cookie(authentication_token: &String) -> Cookie<'a> {
+        Self::decorate(Cookie::build(
+            "authorization",
+            format!("{}{}", config::AUTH_TOKEN_PREFIX, authentication_token),
+        ))
+        .finish()
+    }
+
     fn refresh_cookie(
         claim: &Claim,
-        authentication_token: String,
+        authentication_token: &String,
         conn: &Connection,
     ) -> MainmanResult<Cookie<'a>> {
         let token = sql_query(
