@@ -5,7 +5,7 @@ pub struct Client {
     client: actix_web::client::Client,
 }
 
-static STRIPE_URI: &str = "https://api.stripe.com/v1";
+static STRIPE_URL: &str = "https://api.stripe.com/v1";
 
 impl Client {
     pub fn new() -> Self {
@@ -23,9 +23,9 @@ impl Client {
 
     fn uri(path: String) -> String {
         if path.starts_with("/") {
-            return format!("{}{}", STRIPE_URI, path);
+            return format!("{}{}", STRIPE_URL, path);
         }
-        format!("{}/{}", STRIPE_URI, path)
+        format!("{}/{}", STRIPE_URL, path)
     }
 
     pub async fn get<T: DeserializeOwned>(
