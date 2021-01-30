@@ -1,5 +1,5 @@
-use std::time::Duration;
-
+use std::{sync::Arc, time::Duration};
+use actix_web::client::Connector;
 use serde::{de::DeserializeOwned, Serialize};
 pub struct Client {
     client: actix_web::client::Client,
@@ -9,8 +9,18 @@ static STRIPE_URL: &str = "https://api.stripe.com/v1";
 
 impl Client {
     pub fn new() -> Self {
+        let mut rustls_config = rustls::ClientConfig::new();
+        rustls_config
+            .root_store
+            .add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
         Client {
             client: actix_web::client::ClientBuilder::new()
+                .connector(
+                    Connector::new()
+                        .timeout(Duration::from_secs(10))
+                        .rustls(Arc::new(rustls_config))
+                        .finish(),
+                )
                 .timeout(Duration::from_secs(10))
                 .basic_auth(Self::secret(), None)
                 .finish(),
