@@ -115,6 +115,8 @@ table! {
         maintainers -> Nullable<Int4>,
         accounts -> Nullable<Int4>,
         is_public -> Bool,
+        stripe_product -> Nullable<Text>,
+        stripe_price -> Nullable<Text>,
     }
 }
 

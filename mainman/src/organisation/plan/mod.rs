@@ -14,6 +14,10 @@ pub struct Plan {
     pub accounts: Option<i32>,
     #[serde(skip)]
     pub is_public: bool,
+    #[serde(skip)]
+    pub stripe_product: Option<String>,
+    #[serde(skip)]
+    pub stripe_price: Option<String>,
 }
 
 impl Plan {

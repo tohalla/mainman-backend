@@ -6,8 +6,8 @@ extern crate diesel;
 extern crate serde;
 // #[macro_use]
 // extern crate serde_json;
-// #[macro_use]
-// extern crate log;
+#[macro_use]
+extern crate log;
 
 mod account;
 mod auth;
@@ -17,6 +17,7 @@ mod db;
 mod entity;
 mod error;
 mod health;
+mod initialize;
 mod maintainer;
 mod maintenance;
 mod organisation;
@@ -32,5 +33,8 @@ pub type MainmanResponse<T> = MainmanResult<response::Response<T>>;
 pub async fn start() -> std::io::Result<()> {
     env_logger::init();
     dotenv::dotenv().ok();
+
+    initialize::initialize().await;
+
     server::start().await
 }
