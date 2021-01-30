@@ -1,2 +1,2 @@
 [print_schema]
-file = "mainman/schema.rs"
+file = "schema.rs"

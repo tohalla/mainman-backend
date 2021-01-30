@@ -34,7 +34,7 @@ services:
     volumes:
       - ./db/scripts:/migrate/scripts:ro
       - ./db/migrations:/migrate/migrations:ro
-      - ${PWD}/mainman/src/schema.rs:/migrate/src/schema.rs
+      - ${PWD}/mainman/src/schema.rs:/migrate/schema.rs
       - ${PWD}/diesel.toml:/migrate/diesel.toml
 
   cache:
