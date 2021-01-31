@@ -11,6 +11,7 @@ extern crate log;
 
 mod account;
 mod auth;
+mod billing;
 mod cache;
 mod config;
 mod db;

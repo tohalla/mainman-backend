@@ -4,9 +4,11 @@ use super::handler;
 use crate::auth::middleware::RequireAuthentication;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(super::handler::create_account).service(
-        web::scope("{account_id}")
+    cfg.service(
+        web::scope("")
             .wrap(RequireAuthentication::default())
-            .service(handler::get_account),
+            .service(handler::get_customer_details)
+            .service(handler::get_cards)
+            .service(handler::create_card),
     );
 }

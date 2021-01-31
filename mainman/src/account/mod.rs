@@ -28,7 +28,7 @@ pub struct Account {
     #[serde(skip)]
     pub password: Vec<u8>,
     #[serde(skip)]
-    stripe_customer: Option<String>,
+    pub stripe_customer: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
@@ -38,14 +38,6 @@ pub struct NewAccount<'a> {
     last_name: &'a str,
     email: &'a str,
     password: &'a [u8],
-}
-
-#[derive(Debug, Serialize, Queryable, Associations, Identifiable)]
-#[table_name = "card"]
-struct Card {
-    pub id: String,
-    pub created_at: NaiveDateTime,
-    pub account: i32,
 }
 
 impl Account {
