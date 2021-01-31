@@ -24,7 +24,7 @@ pub struct Account {
     #[serde(skip)]
     pub password: Vec<u8>,
     #[serde(skip)]
-    pub stripe_customer: Option<String>,
+    stripe_customer: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
@@ -41,7 +41,7 @@ impl Account {
         Ok(account::dsl::account.find(id).first(conn)?)
     }
 
-    pub fn set_stripe_customer(
+    fn set_stripe_customer(
         &self,
         conn: &Connection,
         stripe_customer: String,
@@ -49,6 +49,22 @@ impl Account {
         Ok(diesel::update(self)
             .set(account::stripe_customer.eq(stripe_customer))
             .get_result(conn)?)
+    }
+
+    pub async fn stripe_customer(
+        &self,
+        conn: &Connection,
+        stripe_client: &Client,
+    ) -> MainmanResult<Customer> {
+        if let Some(customer) = &self.stripe_customer {
+            return Ok(Customer::get(stripe_client, customer).await?.into());
+        }
+        let customer = NewCustomer { email: &self.email }
+            .create(&Client::new())
+            .await?;
+        self.set_stripe_customer(conn, customer.id.to_owned())?;
+
+        Ok(customer)
     }
 }
 

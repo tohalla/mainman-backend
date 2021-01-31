@@ -48,14 +48,8 @@ pub async fn get_customer_details(
     let conn = &pool.get()?;
     let account = Account::get(*account_id, conn)?;
 
-    if let Some(customer) = account.stripe_customer {
-        return Ok(Customer::get(&Client::new(), customer).await?.into());
-    }
-    let customer = NewCustomer {
-        email: &account.email,
-    }
-    .create(&Client::new())
-    .await?;
+    Ok(account.stripe_customer(conn, &Client::new()).await?.into())
+}
 
     account.set_stripe_customer(conn, customer.id.to_owned())?;
 
