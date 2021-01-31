@@ -7,11 +7,11 @@ use crate::{schema::plan, MainmanResult};
 pub async fn initialize() -> () {
     let client = Client::new();
 
-    info!("initialization started");
+    info!("synchronizing database with stripe started");
     if let Err(err) = initialize_plans(&client).await {
-        error!("Error: {}. Failed to initialize plans", err);
+        error!("Error: {}. Failed to synchronize plans", err);
     }
-    info!("initialization finished");
+    info!("synchronization finished");
 }
 
 async fn initialize_plans(client: &Client) -> MainmanResult<()> {

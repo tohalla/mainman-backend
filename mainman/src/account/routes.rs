@@ -8,6 +8,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
         web::scope("{account_id}")
             .wrap(RequireAuthentication::default())
             .service(handler::get_account)
-            .service(handler::get_customer_details),
+            .service(handler::get_customer_details)
+            .service(handler::create_card),
     );
 }

@@ -1,9 +1,13 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use stripe::{
+    customer::{Customer, NewCustomer},
+    Client,
+};
 
 use crate::{
     db::{Connection, Creatable},
-    schema::account,
+    schema::{account, card},
     MainmanResult,
 };
 
@@ -36,6 +40,14 @@ pub struct NewAccount<'a> {
     password: &'a [u8],
 }
 
+#[derive(Debug, Serialize, Queryable, Associations, Identifiable)]
+#[table_name = "card"]
+struct Card {
+    pub id: String,
+    pub created_at: NaiveDateTime,
+    pub account: i32,
+}
+
 impl Account {
     pub fn get(id: i32, conn: &Connection) -> MainmanResult<Self> {
         Ok(account::dsl::account.find(id).first(conn)?)
@@ -65,6 +77,17 @@ impl Account {
         self.set_stripe_customer(conn, customer.id.to_owned())?;
 
         Ok(customer)
+    }
+
+    pub fn add_card(
+        &self,
+        conn: &Connection,
+        card_id: &str,
+    ) -> MainmanResult<()> {
+        diesel::insert_into(card::table)
+            .values((card::account.eq(self.id), card::id.eq(card_id)))
+            .execute(conn)?;
+        Ok(())
     }
 }
 

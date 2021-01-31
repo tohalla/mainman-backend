@@ -3,6 +3,8 @@ extern crate serde;
 extern crate serde_json;
 
 mod client;
+
+pub mod card;
 pub mod customer;
 pub mod error;
 pub mod price;

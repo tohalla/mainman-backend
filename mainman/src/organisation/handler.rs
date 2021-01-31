@@ -23,6 +23,8 @@ pub async fn create_organisation(
     }
     .create(&pool.get()?)?
     .into())
+
+    // TODO: handle adding stripe subscription (link price with customer id)
 }
 
 // /{organisation_id}
@@ -45,4 +47,7 @@ pub async fn patch_organisation<'a>(
     Ok(Organisation::get(*organisation_id, &conn)?
         .patch(&payload, &conn)?
         .into())
+    // TODO: handle updating stripe subscription if plan changes (link price with customer id)
 }
+
+// TODO: handle organisation removal
