@@ -7,7 +7,7 @@ use stripe::{
 
 use crate::{
     db::{Connection, Creatable},
-    schema::{account, card},
+    schema::account,
     MainmanResult,
 };
 
@@ -69,17 +69,6 @@ impl Account {
         self.set_stripe_customer(conn, customer.id.to_owned())?;
 
         Ok(customer)
-    }
-
-    pub fn add_card(
-        &self,
-        conn: &Connection,
-        card_id: &str,
-    ) -> MainmanResult<()> {
-        diesel::insert_into(card::table)
-            .values((card::account.eq(self.id), card::id.eq(card_id)))
-            .execute(conn)?;
-        Ok(())
     }
 }
 

@@ -1,8 +1,7 @@
 use actix_web::web::{Data, Json};
 use stripe::{
-    card::{Card, NewCard},
-    customer::{Customer, InvoiceSettings, PatchCustomer},
-    Client,
+    card::Card, customer::Customer, payment_method::PaymentMethod,
+    setup_intent::NewSetupIntent, Client,
 };
 
 use crate::{account::Account, auth::Claim, db::Pool, MainmanResponse};
@@ -39,26 +38,19 @@ pub async fn get_cards(
 pub async fn create_card(
     pool: Data<Pool>,
     claim: Claim,
-    card: Json<NewCard>,
-) -> MainmanResponse<Card> {
+    payment_method: Json<PaymentMethod>,
+) -> MainmanResponse<PaymentMethod> {
     let conn = &pool.get()?;
     let client = &Client::new();
     let account = Account::get(claim.account_id, conn)?;
     let customer = account.stripe_customer(conn, client).await?;
 
-    let card = card.into_inner().create(client, &customer.id).await?;
-    account.add_card(conn, &card.id)?;
-    // TODO: setting as default payment method should be optional (if not first card)
-    customer
-        .patch(
-            client,
-            &PatchCustomer {
-                invoice_settings: InvoiceSettings {
-                    default_payment_method: &card.id,
-                },
-            },
-        )
-        .await?;
+    NewSetupIntent {
+        customer: &customer.id,
+        payment_method: &payment_method.id,
+    }
+    .create(client)
+    .await?;
 
-    Ok(card.into())
+    Ok(payment_method.into_inner().into())
 }

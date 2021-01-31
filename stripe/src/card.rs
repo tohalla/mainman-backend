@@ -14,11 +14,6 @@ pub struct Card {
     pub last4: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct NewCard {
-    pub source: String,
-}
-
 impl Card {
     pub async fn list(
         client: &Client,
@@ -26,18 +21,6 @@ impl Card {
     ) -> Result<crate::List<Self>, crate::error::Error> {
         Ok(client
             .get(format!("/customers/{}/sources", customer))
-            .await?)
-    }
-}
-
-impl NewCard {
-    pub async fn create(
-        &self,
-        client: &Client,
-        customer: &str,
-    ) -> Result<Card, crate::error::Error> {
-        Ok(client
-            .post(format!("/customers/{}/sources", customer), self)
             .await?)
     }
 }

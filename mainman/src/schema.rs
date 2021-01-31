@@ -23,14 +23,6 @@ table! {
 }
 
 table! {
-    card (id) {
-        id -> Text,
-        created_at -> Timestamp,
-        account -> Int4,
-    }
-}
-
-table! {
     entity (hash) {
         hash -> Uuid,
         created_at -> Timestamp,
@@ -138,7 +130,6 @@ table! {
 }
 
 joinable!(account_role -> organisation (organisation));
-joinable!(card -> account (account));
 joinable!(entity -> organisation (organisation));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
@@ -157,7 +148,6 @@ joinable!(refresh_token -> account (account_id));
 allow_tables_to_appear_in_same_query!(
     account,
     account_role,
-    card,
     entity,
     maintainer,
     maintainer_entity,

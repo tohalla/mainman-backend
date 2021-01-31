@@ -7,8 +7,10 @@ mod client;
 pub mod card;
 pub mod customer;
 pub mod error;
+pub mod payment_method;
 pub mod price;
 pub mod product;
+pub mod setup_intent;
 
 pub use client::Client;
 
