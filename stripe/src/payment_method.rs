@@ -13,6 +13,11 @@ pub struct FilterPaymentMethods<'a> {
     pub payment_method_type: &'a str,
 }
 
+#[derive(Debug, Serialize)]
+struct AttachPaymentMethod<'a> {
+    pub customer: &'a str,
+}
+
 impl PaymentMethod {
     pub async fn list<'a>(
         client: &Client,
@@ -20,6 +25,19 @@ impl PaymentMethod {
     ) -> Result<crate::List<Self>, crate::error::Error> {
         Ok(client
             .get_query("/payment_methods".to_owned(), filter)
+            .await?)
+    }
+
+    pub async fn attach(
+        &self,
+        client: &Client,
+        customer: &str,
+    ) -> Result<Self, crate::error::Error> {
+        Ok(client
+            .post(
+                format!("payment_methods/{}/attach", self.id),
+                &AttachPaymentMethod { customer },
+            )
             .await?)
     }
 }

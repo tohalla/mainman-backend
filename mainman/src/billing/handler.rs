@@ -1,4 +1,5 @@
 use actix_web::web::{Data, Json};
+use futures::future::join;
 use stripe::{
     customer::Customer,
     payment_method::{FilterPaymentMethods, PaymentMethod},
@@ -56,12 +57,17 @@ pub async fn create_card(
     let account = Account::get(claim.account_id, conn)?;
     let customer = account.stripe_customer(conn, client).await?;
 
-    NewSetupIntent {
-        customer: &customer.id,
-        payment_method: &payment_method.id,
-    }
-    .create(client)
-    .await?;
+    let (setup_intent_fut, attach_fut) = join(
+        NewSetupIntent {
+            customer: &customer.id,
+            payment_method: &payment_method.id.to_owned(),
+        }
+        .create(client),
+        (*payment_method).attach(client, &customer.id),
+    )
+    .await;
+    attach_fut?;
+    setup_intent_fut?;
 
     Ok(payment_method.into_inner().into())
 }
