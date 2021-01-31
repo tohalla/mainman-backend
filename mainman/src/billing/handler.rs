@@ -1,7 +1,9 @@
 use actix_web::web::{Data, Json};
 use stripe::{
-    card::Card, customer::Customer, payment_method::PaymentMethod,
-    setup_intent::NewSetupIntent, Client,
+    customer::Customer,
+    payment_method::{FilterPaymentMethods, PaymentMethod},
+    setup_intent::NewSetupIntent,
+    Client,
 };
 
 use crate::{account::Account, auth::Claim, db::Pool, MainmanResponse};
@@ -21,7 +23,7 @@ pub async fn get_customer_details(
 pub async fn get_cards(
     pool: Data<Pool>,
     claim: Claim,
-) -> MainmanResponse<Vec<Card>> {
+) -> MainmanResponse<Vec<PaymentMethod>> {
     let conn = &pool.get()?;
     let client = &Client::new();
     let account = Account::get(claim.account_id, conn)?;
@@ -31,7 +33,16 @@ pub async fn get_cards(
         None => account.stripe_customer(conn, client).await?.id,
     };
 
-    Ok(Card::list(client, &stripe_customer).await?.data.into())
+    Ok(PaymentMethod::list(
+        client,
+        &FilterPaymentMethods {
+            payment_method_type: "card",
+            customer: &stripe_customer,
+        },
+    )
+    .await?
+    .data
+    .into())
 }
 
 #[post("stripe/cards")]

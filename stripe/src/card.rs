@@ -1,5 +1,3 @@
-use crate::client::Client;
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Card {
     pub id: String,
@@ -12,15 +10,4 @@ pub struct Card {
     pub fingerprint: String,
     pub funding: String,
     pub last4: String,
-}
-
-impl Card {
-    pub async fn list(
-        client: &Client,
-        customer: &str,
-    ) -> Result<crate::List<Self>, crate::error::Error> {
-        Ok(client
-            .get(format!("/customers/{}/sources", customer))
-            .await?)
-    }
 }
