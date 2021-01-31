@@ -20,8 +20,8 @@ pub async fn get_customer_details(
     Ok(account.stripe_customer(conn, &Client::new()).await?.into())
 }
 
-#[get("stripe/cards")]
-pub async fn get_cards(
+#[get("stripe/payment-methods")]
+pub async fn get_payment_methods(
     pool: Data<Pool>,
     claim: Claim,
 ) -> MainmanResponse<Vec<PaymentMethod>> {
@@ -46,8 +46,8 @@ pub async fn get_cards(
     .into())
 }
 
-#[post("stripe/cards")]
-pub async fn create_card(
+#[post("stripe/payment_methods")]
+pub async fn create_payment_method(
     pool: Data<Pool>,
     claim: Claim,
     payment_method: Json<PaymentMethod>,
