@@ -1,9 +1,11 @@
-use crate::Client;
+use crate::{card::Card, Client};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PaymentMethod {
     pub id: String,
     pub customer: Option<String>,
+
+    pub card: Option<Card>,
 }
 
 #[derive(Debug, Serialize)]
