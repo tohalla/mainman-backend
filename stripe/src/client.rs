@@ -1,6 +1,9 @@
-use std::{sync::Arc, time::Duration};
 use actix_web::client::Connector;
 use serde::{de::DeserializeOwned, Serialize};
+use std::{sync::Arc, time::Duration};
+
+use crate::error::Error;
+
 pub struct Client {
     client: actix_web::client::Client,
 }
@@ -41,11 +44,29 @@ impl Client {
     pub async fn get<T: DeserializeOwned>(
         &self,
         path: String,
-    ) -> Result<T, crate::error::Error> {
+    ) -> Result<T, Error> {
         Ok(serde_json::from_slice::<T>(
             &*self
                 .client
                 .get(Self::uri(path))
+                .send()
+                .await?
+                .body()
+                .await?,
+        )?)
+    }
+
+    pub async fn get_query<T: DeserializeOwned, U: Serialize>(
+        &self,
+        path: String,
+        query: U,
+    ) -> Result<T, Error> {
+        Ok(serde_json::from_slice::<T>(
+            &*self
+                .client
+                .get(Self::uri(path))
+                .query(&query)
+                .map_err(|_| Error::GenericError)?
                 .send()
                 .await?
                 .body()
