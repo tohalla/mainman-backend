@@ -7,17 +7,17 @@ use crate::{schema::plan, MainmanResult};
 pub async fn initialize() -> () {
     let client = Client::new();
 
-    info!("synchronizing database with stripe started");
+    info!(target: "mainman","synchronizing database with stripe started");
     if let Err(err) = initialize_plans(&client).await {
         error!("Error: {}. Failed to synchronize plans", err);
     }
-    info!("synchronization finished");
+    info!(target: "mainman","synchronization finished");
 }
 
 async fn initialize_plans(client: &Client) -> MainmanResult<()> {
     let conn = &super::db::get_pool().get()?;
 
-    info!(target: "initialization", "synchronizing stripe products with plans");
+    info!(target: "mainman", "synchronizing stripe products with plans");
     let products = Product::list(client).await?;
     let product_update_fut =
         products.data.into_iter().map(|product| async move {
@@ -28,7 +28,7 @@ async fn initialize_plans(client: &Client) -> MainmanResult<()> {
         });
     try_join_all(product_update_fut).await?;
 
-    info!(target: "initialization", "synchronizing stripe prices with plans");
+    info!(target: "mainman", "synchronizing stripe prices with plans");
     let prices = Price::list(client).await?;
     let prices_update_fut = prices.data.into_iter().map(|price| async move {
         diesel::update(plan::table)
