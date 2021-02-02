@@ -5,8 +5,15 @@ use uuid::Uuid;
 use crate::{
     db::{Connection, Creatable},
     maintainer::{Maintainer, MaintainerEntity},
+    maintenance::{
+        maintenance_request::MaintenanceRequest,
+        maintenance_trigger::MaintenanceTrigger,
+    },
     organisation::Organisation,
-    schema::{entity, maintainer, maintainer_entity},
+    schema::{
+        entity, maintainer, maintainer_entity, maintenance_request,
+        maintenance_trigger,
+    },
     MainmanResult,
 };
 
@@ -74,6 +81,24 @@ impl Entity {
         Ok(diesel::update(self)
             .set(payload)
             .get_result::<Entity>(conn)?)
+    }
+
+    pub fn maintenance_requests(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<MaintenanceRequest>> {
+        Ok(MaintenanceRequest::belonging_to(self)
+            .select(maintenance_request::all_columns)
+            .load::<MaintenanceRequest>(conn)?)
+    }
+
+    pub fn maintenance_triggers(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<MaintenanceTrigger>> {
+        Ok(MaintenanceTrigger::belonging_to(self)
+            .select(maintenance_trigger::all_columns)
+            .load::<MaintenanceTrigger>(conn)?)
     }
 
     pub fn delete_maintainers(

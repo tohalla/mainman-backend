@@ -4,12 +4,15 @@ use uuid::Uuid;
 
 use crate::{
     db::{Connection, Creatable},
-    error::Error,
+    entity::Entity,
     schema::maintenance_request,
     MainmanResult,
 };
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(
+    Debug, Serialize, Deserialize, Queryable, Identifiable, Associations,
+)]
+#[belongs_to(Entity, foreign_key = "entity")]
 #[table_name = "maintenance_request"]
 pub struct MaintenanceRequest {
     pub id: i64,
@@ -17,12 +20,14 @@ pub struct MaintenanceRequest {
     pub updated_by: Option<i32>,
     pub entity: Uuid,
     pub description: Option<String>,
+    pub maintenance_trigger: Option<Uuid>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintenance_request"]
 pub struct NewMaintenanceRequest {
     entity: Uuid,
+    maintenance_trigger: Option<Uuid>,
     description: String,
 }
 
@@ -32,17 +37,6 @@ impl MaintenanceRequest {
         conn: &Connection,
     ) -> MainmanResult<MaintenanceRequest> {
         Ok(maintenance_request::table.find(id).first::<Self>(conn)?)
-    }
-
-    pub fn by_entity(
-        entity: Uuid,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<Self>> {
-        use crate::schema::maintenance_request::dsl;
-        Ok(dsl::maintenance_request
-            .filter(dsl::entity.eq(entity))
-            .load::<MaintenanceRequest>(conn)
-            .map_err(|_| Error::NotFoundError)?)
     }
 }
 

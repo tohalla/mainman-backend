@@ -70,6 +70,7 @@ table! {
         created_by -> Nullable<Int4>,
         entity -> Uuid,
         description -> Nullable<Text>,
+        maintenance_trigger -> Nullable<Uuid>,
     }
 }
 
@@ -83,6 +84,14 @@ table! {
         maintenance_event -> Int4,
         maintainer -> Int4,
         is_available -> Bool,
+    }
+}
+
+table! {
+    maintenance_trigger (hash) {
+        hash -> Uuid,
+        created_at -> Timestamp,
+        entity -> Uuid,
     }
 }
 
@@ -136,8 +145,10 @@ joinable!(maintainer -> organisation (organisation));
 joinable!(maintenance_event -> maintenance_request (maintenance_request));
 joinable!(maintenance_request -> account (created_by));
 joinable!(maintenance_request -> entity (entity));
+joinable!(maintenance_request -> maintenance_trigger (maintenance_trigger));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));
+joinable!(maintenance_trigger -> entity (entity));
 joinable!(organisation -> account (admin_account));
 joinable!(organisation -> plan (plan));
 joinable!(organisation_account -> account (account));
@@ -154,6 +165,7 @@ allow_tables_to_appear_in_same_query!(
     maintenance_event,
     maintenance_request,
     maintenance_task,
+    maintenance_trigger,
     organisation,
     organisation_account,
     plan,

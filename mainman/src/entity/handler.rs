@@ -8,6 +8,10 @@ use super::*;
 use crate::{
     db::Pool,
     maintainer::{Maintainer, MaintainerEntity},
+    maintenance::{
+        maintenance_request::MaintenanceRequest,
+        maintenance_trigger::{MaintenanceTrigger, NewMaintenanceTrigger},
+    },
     MainmanResponse, MainmanResult,
 };
 
@@ -51,19 +55,8 @@ pub async fn patch_entity(
     path: Path<(i32, Uuid)>,
 ) -> MainmanResponse<Entity> {
     let conn = &pool.get()?;
-    Ok(Entity::get((*path).1, (*path).0, &conn)?
-        .patch(&payload, &conn)?
-        .into())
-}
-
-#[get("{hash}/maintainers")]
-pub async fn maintainers(
-    pool: Data<Pool>,
-    path: Path<(i32, Uuid)>,
-) -> MainmanResponse<Vec<Maintainer>> {
-    let conn = &pool.get()?;
-    Ok(Entity::get((*path).1, (*path).0, &conn)?
-        .maintainers(&conn)?
+    Ok(Entity::get((*path).1, (*path).0, conn)?
+        .patch(&payload, conn)?
         .into())
 }
 
@@ -75,7 +68,7 @@ pub async fn add_maintainers(
 ) -> MainmanResponse<Vec<MaintainerEntity>> {
     let conn = &pool.get()?;
     // sepparate fetch for checking access to entity
-    let entity = Entity::get((*path).1, (*path).0, &conn)?;
+    let entity = Entity::get((*path).1, (*path).0, conn)?;
     Ok(payload
         .iter()
         .map(|maintainer| MaintainerEntity {
@@ -84,7 +77,7 @@ pub async fn add_maintainers(
             maintainer: *maintainer,
         })
         .collect::<Vec<_>>()
-        .create(&conn)?
+        .create(conn)?
         .into())
 }
 
@@ -95,7 +88,52 @@ pub async fn delete_maintainers(
     path: Path<(i32, Uuid)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
-    Entity::get((*path).1, (*path).0, &conn)?
-        .delete_maintainers(&*payload, &conn)?;
+    Entity::get((*path).1, (*path).0, conn)?
+        .delete_maintainers(&*payload, conn)?;
     Ok(HttpResponse::Ok().finish())
+}
+
+#[get("{hash}/maintainers")]
+pub async fn maintainers(
+    pool: Data<Pool>,
+    path: Path<(i32, Uuid)>,
+) -> MainmanResponse<Vec<Maintainer>> {
+    let conn = &pool.get()?;
+    Ok(Entity::get((*path).1, (*path).0, conn)?
+        .maintainers(conn)?
+        .into())
+}
+
+#[get("{hash}/maintenance-requests")]
+pub async fn maintenance_requests(
+    pool: Data<Pool>,
+    path: Path<(i32, Uuid)>,
+) -> MainmanResponse<Vec<MaintenanceRequest>> {
+    let conn = &pool.get()?;
+    Ok(Entity::get((*path).1, (*path).0, conn)?
+        .maintenance_requests(conn)?
+        .into())
+}
+
+#[get("{hash}/maintenance-triggers")]
+pub async fn maintenance_triggers(
+    pool: Data<Pool>,
+    path: Path<(i32, Uuid)>,
+) -> MainmanResponse<Vec<MaintenanceTrigger>> {
+    let conn = &pool.get()?;
+    Ok(Entity::get((*path).1, (*path).0, conn)?
+        .maintenance_triggers(conn)?
+        .into())
+}
+
+#[post("{hash}/maintenance-triggers")]
+pub async fn create_maintenance_trigger(
+    pool: Data<Pool>,
+    path: Path<(i32, Uuid)>,
+    payload: Json<NewMaintenanceTrigger>,
+) -> MainmanResponse<MaintenanceTrigger> {
+    let conn = &pool.get()?;
+    // sepparate fetch for checking access to entity
+    Entity::get((*path).1, (*path).0, conn)?;
+    Ok((*payload).create(conn)?.into())
 }
