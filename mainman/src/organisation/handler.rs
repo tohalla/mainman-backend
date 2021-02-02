@@ -44,8 +44,8 @@ pub async fn patch_organisation<'a>(
     organisation_id: Path<i32>,
 ) -> MainmanResponse<Organisation> {
     let conn = &pool.get()?;
-    Ok(Organisation::get(*organisation_id, &conn)?
-        .patch(&payload, &conn)?
+    Ok(Organisation::get(*organisation_id, conn)?
+        .patch(&payload, conn)?
         .into())
     // TODO: handle updating stripe subscription if plan changes (link price with customer id)
 }

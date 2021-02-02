@@ -46,8 +46,8 @@ pub async fn patch_maintainer(
     path: Path<(i32, i32)>,
 ) -> MainmanResponse<Maintainer> {
     let conn = &pool.get()?;
-    Ok(Maintainer::get((*path).1, (*path).0, &conn)?
-        .patch(&payload, &conn)?
+    Ok(Maintainer::get((*path).1, (*path).0, conn)?
+        .patch(&payload, conn)?
         .into())
 }
 
@@ -57,8 +57,8 @@ pub async fn entities(
     path: Path<(i32, i32)>,
 ) -> MainmanResponse<Vec<Entity>> {
     let conn = &pool.get()?;
-    Ok(Maintainer::get((*path).1, (*path).0, &conn)?
-        .entities(&conn)?
+    Ok(Maintainer::get((*path).1, (*path).0, conn)?
+        .entities(conn)?
         .into())
 }
 
@@ -70,7 +70,7 @@ pub async fn add_entities(
 ) -> MainmanResponse<Vec<MaintainerEntity>> {
     let conn = &pool.get()?;
     // sepparate fetch for checking access to maintainer
-    let maintainer = Maintainer::get((*path).1, (*path).0, &conn)?;
+    let maintainer = Maintainer::get((*path).1, (*path).0, conn)?;
     Ok(payload
         .iter()
         .map(|entity| MaintainerEntity {
@@ -79,7 +79,7 @@ pub async fn add_entities(
             entity: *entity,
         })
         .collect::<Vec<_>>()
-        .create(&conn)?
+        .create(conn)?
         .into())
 }
 
@@ -90,7 +90,7 @@ pub async fn delete_entities(
     path: Path<(i32, i32)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
-    Maintainer::get((*path).1, (*path).0, &conn)?
-        .delete_entities(&*payload, &conn)?;
+    Maintainer::get((*path).1, (*path).0, conn)?
+        .delete_entities(&*payload, conn)?;
     Ok(HttpResponse::Ok().finish())
 }

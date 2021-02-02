@@ -152,7 +152,7 @@ where
             .match_info()
             .load::<PathInfo>()
             .unwrap_or(PathInfo::default());
-        let conn = req.app_data::<Data<Pool>>().unwrap().get().unwrap();
+        let conn = &req.app_data::<Data<Pool>>().unwrap().get().unwrap();
 
         let mut service = self.service.clone();
         let authentication_token = req
@@ -161,7 +161,7 @@ where
 
         if let Ok(claim) = Claim::from_identity(authentication_token.to_owned())
         {
-            if check_access(&claim, &path_info, &conn).is_ok() {
+            if check_access(&claim, &path_info, conn).is_ok() {
                 return Box::pin(async move { Ok(service.call(req).await?) });
             }
         }
@@ -172,11 +172,11 @@ where
                         authentication_token.and_then(|auth_token| {
                             AuthCookies::parse_auth_token(&auth_token)
                         }),
-                        &conn,
+                        conn,
                     )
                 {
-                    if check_access(&claim, &path_info, &conn).is_ok() {
-                        if let Ok(cookies) = AuthCookies::cookies(&claim, &conn)
+                    if check_access(&claim, &path_info, conn).is_ok() {
+                        if let Ok(cookies) = AuthCookies::cookies(&claim, conn)
                         {
                             return Box::pin(async move {
                                 let mut res = service.call(req).await?;

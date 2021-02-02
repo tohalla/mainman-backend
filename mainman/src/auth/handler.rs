@@ -10,10 +10,10 @@ pub async fn authenticate(
     pool: Data<Pool>,
     payload: Json<super::Credentials>,
 ) -> MainmanResult<HttpResponse> {
-    let conn = pool.get()?;
-    let claim = payload.into_inner().claim(&conn)?;
+    let conn = &pool.get()?;
+    let claim = payload.into_inner().claim(conn)?;
 
-    Ok(super::AuthCookies::cookies(&claim, &conn)?.into())
+    Ok(super::AuthCookies::cookies(&claim, conn)?.into())
 }
 
 #[get("")]
