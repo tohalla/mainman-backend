@@ -4,7 +4,9 @@ use diesel::prelude::*;
 use crate::{
     account::Account,
     db::{Connection, Creatable},
-    schema::{organisation, organisation_account},
+    entity::Entity,
+    maintainer::Maintainer,
+    schema::{entity, maintainer, organisation, organisation_account},
     MainmanResult,
 };
 
@@ -81,6 +83,21 @@ impl Organisation {
         Ok(organisation
             .filter(admin_account.eq(account_id))
             .load::<Organisation>(conn)?)
+    }
+
+    pub fn maintainers(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<Maintainer>> {
+        Ok(Maintainer::belonging_to(self)
+            .select(maintainer::all_columns)
+            .load::<Maintainer>(conn)?)
+    }
+
+    pub fn entities(&self, conn: &Connection) -> MainmanResult<Vec<Entity>> {
+        Ok(Entity::belonging_to(self)
+            .select(entity::all_columns)
+            .load::<Entity>(conn)?)
     }
 
     pub fn patch(

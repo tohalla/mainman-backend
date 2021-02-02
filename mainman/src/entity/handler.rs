@@ -22,9 +22,12 @@ pub async fn get_entity(
 #[get("")]
 pub async fn get_entities(
     pool: Data<Pool>,
-    organisation: Path<i32>,
+    organisation_id: Path<i32>,
 ) -> MainmanResponse<Vec<Entity>> {
-    Ok(Entity::by_organisation(*organisation, &pool.get()?)?.into())
+    let conn = &pool.get()?;
+    Ok(Organisation::get(*organisation_id, conn)?
+        .entities(conn)?
+        .into())
 }
 
 #[post("")]

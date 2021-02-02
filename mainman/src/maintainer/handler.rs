@@ -19,7 +19,10 @@ pub async fn get_maintainers(
     pool: Data<Pool>,
     organisation_id: Path<i32>,
 ) -> MainmanResponse<Vec<Maintainer>> {
-    Ok(Maintainer::by_organisation(*organisation_id, &pool.get()?)?.into())
+    let conn = &pool.get()?;
+    Ok(Organisation::get(*organisation_id, conn)?
+        .maintainers(conn)?
+        .into())
 }
 
 #[post("")]

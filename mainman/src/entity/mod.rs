@@ -4,8 +4,8 @@ use uuid::Uuid;
 
 use crate::{
     db::{Connection, Creatable},
-    error::Error,
     maintainer::{Maintainer, MaintainerEntity},
+    organisation::Organisation,
     schema::{entity, maintainer, maintainer_entity},
     MainmanResult,
 };
@@ -16,6 +16,7 @@ pub mod routes;
 #[derive(
     Debug, Associations, Serialize, Deserialize, Queryable, Identifiable,
 )]
+#[belongs_to(Organisation, foreign_key = "organisation")]
 #[table_name = "entity"]
 #[primary_key(hash)]
 pub struct Entity {
@@ -55,18 +56,6 @@ impl Entity {
             .first::<Entity>(conn)?)
     }
 
-    pub fn by_organisation(
-        organisation: i32,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<Entity>> {
-        use crate::schema::entity::dsl;
-
-        Ok(dsl::entity
-            .filter(dsl::organisation.eq(organisation))
-            .load::<Entity>(conn)
-            .map_err(|_| Error::NotFoundError)?)
-    }
-
     pub fn maintainers(
         &self,
         conn: &Connection,
@@ -74,8 +63,7 @@ impl Entity {
         Ok(MaintainerEntity::belonging_to(self)
             .inner_join(maintainer::table)
             .select(maintainer::all_columns)
-            .load::<Maintainer>(conn)
-            .map_err(|_| Error::NotFoundError)?)
+            .load::<Maintainer>(conn)?)
     }
 
     pub fn patch(
