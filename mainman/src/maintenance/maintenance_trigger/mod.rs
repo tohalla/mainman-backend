@@ -30,7 +30,7 @@ pub struct MaintenanceTrigger {
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintenance_trigger"]
 pub struct NewMaintenanceTrigger {
-    entity: Uuid,
+    pub entity: Uuid,
 }
 
 impl Creatable<MaintenanceTrigger> for NewMaintenanceTrigger {

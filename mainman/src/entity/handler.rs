@@ -130,10 +130,11 @@ pub async fn maintenance_triggers(
 pub async fn create_maintenance_trigger(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,
-    payload: Json<NewMaintenanceTrigger>,
 ) -> MainmanResponse<MaintenanceTrigger> {
     let conn = &pool.get()?;
     // sepparate fetch for checking access to entity
     Entity::get((*path).1, (*path).0, conn)?;
-    Ok((*payload).create(conn)?.into())
+    Ok(NewMaintenanceTrigger { entity: (*path).1 }
+        .create(conn)?
+        .into())
 }
