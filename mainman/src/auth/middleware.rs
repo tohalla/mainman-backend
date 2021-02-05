@@ -159,8 +159,10 @@ where
             .cookie("authorization")
             .map(|cookie| cookie.value().to_string());
 
-        if let Ok(claim) = Claim::from_identity(authentication_token.to_owned())
-        {
+        if let Ok(claim) = Claim::from_identity(
+            authentication_token.to_owned(),
+            &Validation::default(),
+        ) {
             if check_access(&claim, &path_info, conn).is_ok() {
                 return Box::pin(async move { Ok(service.call(req).await?) });
             }

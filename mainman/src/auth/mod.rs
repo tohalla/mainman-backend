@@ -53,22 +53,27 @@ impl Claim {
         .map_err(|_| Error::InternalServerError(None))
     }
 
-    pub fn decode(token: &str) -> MainmanResult<Self> {
+    pub fn decode(token: &str, validation: &Validation) -> MainmanResult<Self> {
         Ok(decode(
             token,
             &DecodingKey::from_secret(
                 std::env::var("JWT_KEY").unwrap().as_ref(),
             ),
-            &Validation::default(),
+            validation,
         )
         .map(|data| data.claims)?)
     }
 
-    fn from_identity(identity: Option<String>) -> MainmanResult<Self> {
+    fn from_identity(
+        identity: Option<String>,
+        validation: &Validation,
+    ) -> MainmanResult<Self> {
         match identity
             .and_then(|identity| AuthCookies::parse_auth_token(&identity))
         {
-            Some(authentication_token) => Claim::decode(&authentication_token),
+            Some(authentication_token) => {
+                Claim::decode(&authentication_token, validation)
+            }
             None => Err(Error::UnauthorizedError),
         }
     }
@@ -194,9 +199,12 @@ impl FromRequest for Claim {
     type Config = ();
 
     fn from_request(req: &HttpRequest, _: &mut dev::Payload) -> Self::Future {
+        let mut validation = Validation::default();
+        validation.validate_exp = false;
         match Claim::from_identity(
             req.cookie("authorization")
                 .map(|cookie| cookie.value().to_string()),
+            &validation,
         ) {
             Ok(claim) => ok(claim),
             Err(e) => err(e),
