@@ -20,9 +20,9 @@ use crate::{
 )]
 #[belongs_to(Entity, foreign_key = "entity")]
 #[table_name = "maintenance_trigger"]
-#[primary_key(hash)]
+#[primary_key(uuid)]
 pub struct MaintenanceTrigger {
-    pub hash: Uuid,
+    pub uuid: Uuid,
     pub created_at: NaiveDateTime,
     pub entity: Uuid,
 }

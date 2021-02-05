@@ -25,9 +25,9 @@ pub mod routes;
 )]
 #[belongs_to(Organisation, foreign_key = "organisation")]
 #[table_name = "entity"]
-#[primary_key(hash)]
+#[primary_key(uuid)]
 pub struct Entity {
-    pub hash: uuid::Uuid,
+    pub uuid: uuid::Uuid,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
     pub name: String,
@@ -53,12 +53,12 @@ pub struct PatchEntity {
 
 impl Entity {
     pub fn get(
-        hash: Uuid,
+        uuid: Uuid,
         organisation: i32,
         conn: &Connection,
     ) -> MainmanResult<Entity> {
         Ok(entity::table
-            .find(hash)
+            .find(uuid)
             .filter(entity::organisation.eq(organisation))
             .first::<Entity>(conn)?)
     }
@@ -109,7 +109,7 @@ impl Entity {
         diesel::delete(
             maintainer_entity::table.filter(
                 maintainer_entity::entity
-                    .eq(self.hash)
+                    .eq(self.uuid)
                     .and(maintainer_entity::maintainer.eq_any(payload)),
             ),
         )

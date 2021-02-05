@@ -1,5 +1,5 @@
 CREATE TABLE maintainer_appliance (
-  appliance UUID NOT NULL REFERENCES appliance (hash),
+  appliance UUID NOT NULL REFERENCES appliance (uuid),
   maintainer INTEGER NOT NULL REFERENCES maintainer (id),
   PRIMARY KEY (appliance, maintainer)
 );

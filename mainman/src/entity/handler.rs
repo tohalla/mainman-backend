@@ -15,7 +15,7 @@ use crate::{
     MainmanResponse, MainmanResult,
 };
 
-#[get("{hash}")]
+#[get("{uuid}")]
 pub async fn get_entity(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,
@@ -48,7 +48,7 @@ pub async fn create_entity(
     .into())
 }
 
-#[patch("{hash}")]
+#[patch("{uuid}")]
 pub async fn patch_entity(
     pool: Data<Pool>,
     payload: Json<PatchEntity>,
@@ -60,7 +60,7 @@ pub async fn patch_entity(
         .into())
 }
 
-#[post("{hash}/maintainers")]
+#[post("{uuid}/maintainers")]
 pub async fn add_maintainers(
     pool: Data<Pool>,
     payload: Json<Vec<i32>>,
@@ -73,7 +73,7 @@ pub async fn add_maintainers(
         .iter()
         .map(|maintainer| MaintainerEntity {
             organisation: (*path).0,
-            entity: entity.hash,
+            entity: entity.uuid,
             maintainer: *maintainer,
         })
         .collect::<Vec<_>>()
@@ -81,7 +81,7 @@ pub async fn add_maintainers(
         .into())
 }
 
-#[delete("{hash}/maintainers")]
+#[delete("{uuid}/maintainers")]
 pub async fn delete_maintainers(
     pool: Data<Pool>,
     payload: Json<Vec<i32>>,
@@ -93,7 +93,7 @@ pub async fn delete_maintainers(
     Ok(HttpResponse::Ok().finish())
 }
 
-#[get("{hash}/maintainers")]
+#[get("{uuid}/maintainers")]
 pub async fn maintainers(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,
@@ -104,7 +104,7 @@ pub async fn maintainers(
         .into())
 }
 
-#[get("{hash}/maintenance-requests")]
+#[get("{uuid}/maintenance-requests")]
 pub async fn maintenance_requests(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,
@@ -115,7 +115,7 @@ pub async fn maintenance_requests(
         .into())
 }
 
-#[get("{hash}/maintenance-triggers")]
+#[get("{uuid}/maintenance-triggers")]
 pub async fn maintenance_triggers(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,
@@ -126,7 +126,7 @@ pub async fn maintenance_triggers(
         .into())
 }
 
-#[post("{hash}/maintenance-triggers")]
+#[post("{uuid}/maintenance-triggers")]
 pub async fn create_maintenance_trigger(
     pool: Data<Pool>,
     path: Path<(i32, Uuid)>,

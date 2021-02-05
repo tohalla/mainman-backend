@@ -5,9 +5,9 @@ use crate::schema::maintenance_task;
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Identifiable)]
 #[table_name = "maintenance_task"]
-#[primary_key(hash)]
+#[primary_key(uuid)]
 pub struct MaintenanceTask {
-    pub hash: Uuid,
+    pub uuid: Uuid,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
     pub accepted_at: Option<NaiveDateTime>,

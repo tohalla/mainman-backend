@@ -3,12 +3,12 @@ CREATE TABLE maintenance_event (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP,
   resolved_at TIMESTAMP,
-  appliance UUID NOT NULL REFERENCES appliance (hash),
+  appliance UUID NOT NULL REFERENCES appliance (uuid),
   description TEXT
 );
 
 CREATE TABLE maintenance_task (
-  hash UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  uuid UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP,
   accepted_at TIMESTAMP,

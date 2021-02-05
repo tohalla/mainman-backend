@@ -23,8 +23,8 @@ table! {
 }
 
 table! {
-    entity (hash) {
-        hash -> Uuid,
+    entity (uuid) {
+        uuid -> Uuid,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         name -> Varchar,
@@ -75,8 +75,8 @@ table! {
 }
 
 table! {
-    maintenance_task (hash) {
-        hash -> Uuid,
+    maintenance_task (uuid) {
+        uuid -> Uuid,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         accepted_at -> Nullable<Timestamp>,
@@ -88,8 +88,8 @@ table! {
 }
 
 table! {
-    maintenance_trigger (hash) {
-        hash -> Uuid,
+    maintenance_trigger (uuid) {
+        uuid -> Uuid,
         created_at -> Timestamp,
         entity -> Uuid,
     }

@@ -2,7 +2,7 @@ CREATE TABLE maintenance_request (
   id bigserial PRIMARY KEY,
   created_at timestamp NOT NULL DEFAULT NOW(),
   created_by int REFERENCES account (id),
-  entity uuid NOT NULL REFERENCES entity (hash),
+  entity uuid NOT NULL REFERENCES entity (uuid),
   description text
 );
 
