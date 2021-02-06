@@ -33,6 +33,24 @@ pub struct NewMaintenanceTrigger {
     pub entity: Uuid,
 }
 
+impl MaintenanceTrigger {
+    pub fn delete(
+        entity: Uuid,
+        trigger: Uuid,
+        conn: &Connection,
+    ) -> MainmanResult<()> {
+        diesel::delete(
+            maintenance_trigger::table.filter(
+                maintenance_trigger::entity
+                    .eq(entity)
+                    .and(maintenance_trigger::uuid.eq(trigger)),
+            ),
+        )
+        .execute(conn)?;
+        Ok(())
+    }
+}
+
 impl Creatable<MaintenanceTrigger> for NewMaintenanceTrigger {
     fn create(&self, conn: &Connection) -> MainmanResult<MaintenanceTrigger> {
         Ok(diesel::insert_into(maintenance_trigger::table)

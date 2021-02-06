@@ -90,7 +90,7 @@ pub async fn delete_maintainers(
     let conn = &pool.get()?;
     Entity::get((*path).1, (*path).0, conn)?
         .delete_maintainers(&*payload, conn)?;
-    Ok(HttpResponse::Ok().finish())
+    Ok(HttpResponse::Accepted().finish())
 }
 
 #[get("{uuid}/maintainers")]
@@ -137,4 +137,14 @@ pub async fn create_maintenance_trigger(
     Ok(NewMaintenanceTrigger { entity: (*path).1 }
         .create(conn)?
         .into())
+}
+
+#[delete("{uuid}/maintenance-triggers/{trigger_uuid}")]
+pub async fn delete_maintenance_trigger(
+    pool: Data<Pool>,
+    path: Path<(i32, Uuid, Uuid)>,
+) -> MainmanResult<HttpResponse> {
+    let conn = &pool.get()?;
+    MaintenanceTrigger::delete((*path).1, (*path).2, conn)?;
+    Ok(HttpResponse::Accepted().finish())
 }

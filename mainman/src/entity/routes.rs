@@ -10,5 +10,6 @@ pub fn organisation_routes(cfg: &mut web::ServiceConfig) {
         .service(super::handler::maintenance_triggers)
         .service(super::handler::maintenance_requests)
         .service(super::handler::create_maintenance_trigger)
+        .service(super::handler::delete_maintenance_trigger)
         .service(super::handler::add_maintainers);
 }
