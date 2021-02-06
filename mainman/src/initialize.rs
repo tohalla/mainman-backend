@@ -32,7 +32,7 @@ async fn initialize_plans(client: &Client) -> MainmanResult<()> {
     let prices = Price::list(client).await?;
     let prices_update_fut = prices.data.into_iter().map(|price| async move {
         diesel::update(plan::table)
-            .set(plan::stripe_price.eq(price.id))
+            .set(plan::stripe_price.eq(json!(price)))
             .filter(plan::stripe_product.eq(price.product))
             .execute(conn)
     });

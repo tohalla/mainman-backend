@@ -1,0 +1,1 @@
+ALTER TABLE plan ALTER COLUMN stripe_price TYPE JSONB USING null;

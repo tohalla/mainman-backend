@@ -1,11 +1,13 @@
+use futures::future::join;
+
 #[macro_use]
 extern crate actix_web;
 #[macro_use]
 extern crate diesel;
 #[macro_use]
 extern crate serde;
-// #[macro_use]
-// extern crate serde_json;
+#[macro_use]
+extern crate serde_json;
 #[macro_use]
 extern crate log;
 
@@ -35,7 +37,6 @@ pub async fn start() -> std::io::Result<()> {
     env_logger::init();
     dotenv::dotenv().ok();
 
-    initialize::initialize().await;
-
-    server::start().await
+    let (_, server) = join(initialize::initialize(), server::start()).await;
+    server
 }

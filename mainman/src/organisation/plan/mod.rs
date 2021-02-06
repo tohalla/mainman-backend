@@ -16,8 +16,8 @@ pub struct Plan {
     pub is_public: bool,
     #[serde(skip)]
     pub stripe_product: Option<String>,
-    #[serde(skip)]
-    pub stripe_price: Option<String>,
+    #[serde(skip_deserializing)]
+    pub stripe_price: Option<serde_json::Value>,
 }
 
 impl Plan {
