@@ -9,6 +9,8 @@ use crate::{
     MainmanResult,
 };
 
+pub mod handler;
+
 // TODO: add different types
 // #[derive(Debug)]
 // pub enum Type {
@@ -30,10 +32,18 @@ pub struct MaintenanceTrigger {
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintenance_trigger"]
 pub struct NewMaintenanceTrigger {
+    #[serde(skip)]
     pub entity: Uuid,
 }
 
 impl MaintenanceTrigger {
+    pub fn get(uuid: Uuid, conn: &Connection) -> MainmanResult<Self> {
+        Ok(maintenance_trigger::table
+            .find(uuid)
+            .filter(maintenance_trigger::uuid.eq(uuid))
+            .first::<MaintenanceTrigger>(conn)?)
+    }
+
     pub fn delete(
         entity: Uuid,
         trigger: Uuid,

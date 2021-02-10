@@ -26,9 +26,11 @@ pub struct MaintenanceRequest {
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintenance_request"]
 pub struct NewMaintenanceRequest {
-    entity: Uuid,
-    maintenance_trigger: Option<Uuid>,
-    description: String,
+    #[serde(skip)]
+    pub entity: Uuid,
+    #[serde(skip)]
+    pub maintenance_trigger: Uuid,
+    pub description: String,
 }
 
 impl MaintenanceRequest {

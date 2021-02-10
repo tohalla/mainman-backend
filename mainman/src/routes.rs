@@ -1,8 +1,11 @@
 use actix_web::web;
 
-use crate::health::handler::get_health;
-use crate::organisation::{self, plan};
-use crate::{account, auth, billing};
+use crate::{
+    account, auth, billing,
+    health::handler::get_health,
+    maintenance,
+    organisation::{self, plan},
+};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(get_health).service(
@@ -14,6 +17,10 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                 web::scope("/organisations")
                     .configure(organisation::routes::routes),
             )
-            .service(web::scope("/auth").configure(auth::routes::routes)),
+            .service(web::scope("/auth").configure(auth::routes::routes))
+            .service(
+                web::scope("/maintenance")
+                    .configure(maintenance::routes::routes),
+            ),
     );
 }
