@@ -10,7 +10,7 @@ use crate::{
     MainmanResult,
 };
 
-pub mod handler;
+mod handler;
 pub mod plan;
 pub mod routes;
 

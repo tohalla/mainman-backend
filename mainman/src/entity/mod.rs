@@ -17,7 +17,7 @@ use crate::{
     MainmanResult,
 };
 
-pub mod handler;
+mod handler;
 pub mod routes;
 
 #[derive(
