@@ -7,9 +7,10 @@ use actix_web::{
 use crate::events::Broadcaster;
 
 pub async fn start() -> std::io::Result<()> {
+    let pool = super::db::get_pool();
+    let broadcaster = Broadcaster::create();
+
     HttpServer::new(move || {
-        let pool = super::db::get_pool();
-        let broadcaster = Broadcaster::create();
         App::new()
             .data(pool.clone())
             .app_data(broadcaster.clone())

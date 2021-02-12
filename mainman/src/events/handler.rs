@@ -9,7 +9,6 @@ use super::Broadcaster;
 
 #[get("")]
 pub fn connect(broker: Data<Mutex<Broadcaster>>, claim: Claim) -> HttpResponse {
-    info!("conn {}", claim.account_id);
     match broker.lock() {
         Ok(mut broker) => HttpResponse::Ok()
             .set_header(CONTENT_TYPE, "text/event-stream")

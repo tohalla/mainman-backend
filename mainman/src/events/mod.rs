@@ -23,10 +23,11 @@ use crate::{error, MainmanResult};
 mod handler;
 pub mod routes;
 
-pub struct Message<T: serde::Serialize> {
+#[derive(Debug)]
+pub struct Message<'a, T: serde::Serialize + std::fmt::Debug> {
     pub recipient: i32,
-    pub event: Option<String>,
-    pub data: Vec<T>,
+    pub event: Option<&'a str>,
+    pub data: Vec<&'a T>,
 }
 
 pub struct Client(Receiver<Bytes>);
@@ -79,13 +80,14 @@ impl Broadcaster {
     }
 
     #[allow(dead_code)]
-    pub async fn send<T: serde::Serialize>(
+    pub async fn send<'a, T: serde::Serialize + std::fmt::Debug>(
         &mut self,
-        msg: Message<T>,
+        msg: Message<'a, T>,
     ) -> MainmanResult<()> {
         if let Some(client) = self.clients.get_mut(&msg.recipient) {
+            let bytes: Bytes = msg.into();
             return client
-                .send(msg.into())
+                .send(bytes)
                 .await
                 .map_err(|_| error::Error::InternalServerError(None));
         }
@@ -108,11 +110,11 @@ impl Stream for Client {
     }
 }
 
-impl<T: serde::Serialize> Into<Bytes> for Message<T> {
+impl<'a, T: serde::Serialize + std::fmt::Debug> Into<Bytes> for Message<'a, T> {
     fn into(self) -> Bytes {
         let mut payload = self
             .event
-            .map_or("".to_owned(), |event| format!("event: {}\n)", event));
+            .map_or("".to_owned(), |event| format!("event: {}\n", event));
 
         for data in self.data {
             payload.push_str(&format!("data: {}\n", json!(data)));
