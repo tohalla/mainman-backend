@@ -8,9 +8,11 @@ use crate::events::Broadcaster;
 
 pub async fn start() -> std::io::Result<()> {
     HttpServer::new(move || {
+        let pool = super::db::get_pool();
+        let broadcaster = Broadcaster::create();
         App::new()
-            .data(super::db::get_pool())
-            .app_data(Broadcaster::create())
+            .data(pool.clone())
+            .app_data(broadcaster.clone())
             .configure(super::cache::add_cache)
             .wrap(Cors::new().supports_credentials().finish())
             .wrap(NormalizePath::new(TrailingSlash::Trim))
