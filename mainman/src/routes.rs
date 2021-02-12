@@ -1,7 +1,7 @@
 use actix_web::web;
 
 use crate::{
-    account, auth, billing,
+    account, auth, billing, events,
     health::handler::get_health,
     maintenance,
     organisation::{self, plan},
@@ -21,6 +21,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             .service(
                 web::scope("/maintenance")
                     .configure(maintenance::routes::routes),
-            ),
+            )
+            .service(web::scope("/events").configure(events::routes::routes)),
     );
 }

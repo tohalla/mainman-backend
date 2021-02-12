@@ -1341,6 +1341,7 @@ dependencies = [
 name = "mainman"
 version = "0.1.0"
 dependencies = [
+ "actix",
  "actix-cors",
  "actix-http",
  "actix-redis",

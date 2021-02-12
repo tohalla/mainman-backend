@@ -19,6 +19,7 @@ mod config;
 mod db;
 mod entity;
 mod error;
+mod events;
 mod health;
 mod initialize;
 mod maintainer;

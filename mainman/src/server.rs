@@ -4,10 +4,13 @@ use actix_web::{
     App, HttpServer,
 };
 
+use crate::events::Broadcaster;
+
 pub async fn start() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(super::db::get_pool())
+            .app_data(Broadcaster::create())
             .configure(super::cache::add_cache)
             .wrap(Cors::new().supports_credentials().finish())
             .wrap(NormalizePath::new(TrailingSlash::Trim))

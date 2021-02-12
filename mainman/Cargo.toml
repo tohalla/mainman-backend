@@ -5,6 +5,7 @@ authors = ["Touko Hallasmaa <hallasmaa.touko@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+actix = "0.10"
 actix-cors = "0.3"
 actix-http = "2"
 actix-redis = "0.9"
