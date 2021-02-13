@@ -27,7 +27,7 @@ pub mod routes;
 pub struct Message<'a, T: serde::Serialize + std::fmt::Debug> {
     pub recipient: i32,
     pub event: Option<&'a str>,
-    pub data: Vec<&'a T>,
+    pub data: &'a T,
 }
 
 pub struct Client(Receiver<Bytes>);
@@ -116,9 +116,7 @@ impl<'a, T: serde::Serialize + std::fmt::Debug> Into<Bytes> for Message<'a, T> {
             .event
             .map_or("".to_owned(), |event| format!("event: {}\n", event));
 
-        for data in self.data {
-            payload.push_str(&format!("data: {}\n", json!(data)));
-        }
+        payload.push_str(&format!("data: {}\n", json!(msg.data)));
 
         Bytes::from(format!("{}\n", payload))
     }
