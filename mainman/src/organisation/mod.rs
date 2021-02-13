@@ -35,12 +35,14 @@ pub struct Organisation {
     pub plan: i32,
 }
 
-#[derive(Identifiable, Queryable, Associations)]
+#[derive(
+    Debug, Serialize, Deserialize, Identifiable, Queryable, Associations,
+)]
 #[table_name = "organisation_account"]
 #[belongs_to(Account, foreign_key = "account")]
 #[belongs_to(Organisation, foreign_key = "organisation")]
+#[primary_key(account, organisation)]
 pub struct OrganisationAccount {
-    pub id: i32,
     pub organisation: i32,
     pub account: i32,
     pub account_role: i32,

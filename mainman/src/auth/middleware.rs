@@ -18,6 +18,7 @@ use super::*;
 use crate::{
     db::{Connection, Pool},
     error::Error,
+    organisation::OrganisationAccount,
     schema::{organisation, organisation_account},
     MainmanResult,
 };
@@ -85,34 +86,43 @@ fn check_access(
     path_info: &PathInfo,
     conn: &Connection,
 ) -> MainmanResult<()> {
-    check_account(&claim, &path_info)
-        .and_then(|_| check_organisation(&claim, &path_info, conn))
+    check_account(&claim, &path_info)?;
+    if let Some(organisation_id) = path_info.organisation_id {
+        is_admin(&claim, organisation_id, conn)
+            .or(check_organisation_access(claim, organisation_id, conn))?;
+    }
+    Ok(())
 }
 
-fn check_organisation(
+fn is_admin(
     claim: &Claim,
-    path_info: &PathInfo,
+    organisation_id: i32,
     conn: &Connection,
 ) -> MainmanResult<()> {
-    match path_info.organisation_id {
-        Some(organisation_id) => {
-            let admin_account = organisation::dsl::organisation
-                .left_join(
-                    organisation_account::table
-                        .on(organisation_account::account.eq(claim.account_id)),
-                )
-                .filter(organisation::dsl::id.eq(organisation_id))
-                .select(organisation::admin_account)
-                .first::<i32>(conn);
-            if let Ok(admin_account) = admin_account {
-                if admin_account == claim.account_id {
-                    return Ok(());
-                }
-            }
-            Err(Error::UnauthorizedError)
-        }
-        None => Ok(()),
+    let admin_account = organisation::table
+        .filter(organisation::dsl::id.eq(organisation_id))
+        .select(organisation::admin_account)
+        .first::<i32>(conn)?;
+    if admin_account == claim.account_id {
+        return Ok(());
     }
+    Err(Error::UnauthorizedError)
+}
+
+fn check_organisation_access(
+    claim: &Claim,
+    organisation_id: i32,
+    conn: &Connection,
+) -> MainmanResult<()> {
+    organisation_account::table
+        .filter(
+            organisation_account::organisation
+                .eq(organisation_id)
+                .and(organisation_account::account.eq(claim.account_id)),
+        )
+        .first::<OrganisationAccount>(conn)?;
+
+    Ok(())
 }
 
 fn check_account(claim: &Claim, path_info: &PathInfo) -> MainmanResult<()> {

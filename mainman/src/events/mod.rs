@@ -116,7 +116,7 @@ impl<'a, T: serde::Serialize + std::fmt::Debug> Into<Bytes> for Message<'a, T> {
             .event
             .map_or("".to_owned(), |event| format!("event: {}\n", event));
 
-        payload.push_str(&format!("data: {}\n", json!(msg.data)));
+        payload.push_str(&format!("data: {}\n", json!(self.data)));
 
         Bytes::from(format!("{}\n", payload))
     }
