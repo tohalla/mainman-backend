@@ -31,6 +31,14 @@ pub struct Account {
     pub stripe_customer: Option<String>,
 }
 
+#[derive(Debug, Serialize, Queryable)]
+pub struct PublicAccount {
+    pub id: i32,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub email: String,
+}
+
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "account"]
 pub struct NewAccount<'a> {

@@ -3,7 +3,7 @@ use bcrypt::{hash, DEFAULT_COST};
 use heck::TitleCase;
 
 use super::*;
-use crate::{db::Pool, MainmanResponse};
+use crate::{db::Pool, organisation::Organisation, MainmanResponse};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct NewAccountPayload {
@@ -29,9 +29,20 @@ pub async fn create_account(
 }
 
 #[get("")]
-pub async fn get_account(
+pub async fn account(
     pool: Data<Pool>,
     account_id: Path<i32>,
 ) -> MainmanResponse<Account> {
     Ok(Account::get(*account_id, &pool.get()?)?.into())
+}
+
+#[get("")]
+pub async fn organisation_accounts(
+    pool: Data<Pool>,
+    organisation_id: Path<i32>,
+) -> MainmanResponse<Vec<PublicAccount>> {
+    let conn = &pool.get()?;
+    Ok(Organisation::get(*organisation_id, conn)?
+        .accounts(conn)?
+        .into())
 }

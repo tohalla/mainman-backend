@@ -7,6 +7,11 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(super::handler::create_account).service(
         web::scope("{account_id}")
             .wrap(RequireAuthentication::default())
-            .service(handler::get_account),
+            .service(handler::account),
     );
+}
+
+pub fn organisation_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(super::handler::create_account)
+        .service(web::scope("").service(handler::organisation_accounts));
 }

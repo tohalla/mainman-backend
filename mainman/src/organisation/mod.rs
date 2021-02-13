@@ -3,10 +3,11 @@ use diesel::prelude::*;
 
 use crate::{
     account::Account,
+    account::PublicAccount,
     db::{Connection, Creatable},
     entity::Entity,
     maintainer::Maintainer,
-    schema::{entity, maintainer, organisation, organisation_account},
+    schema::{account, entity, maintainer, organisation, organisation_account},
     MainmanResult,
 };
 
@@ -100,6 +101,21 @@ impl Organisation {
         Ok(Entity::belonging_to(self)
             .select(entity::all_columns)
             .load::<Entity>(conn)?)
+    }
+
+    pub fn accounts(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<PublicAccount>> {
+        Ok(OrganisationAccount::belonging_to(self)
+            .inner_join(account::table)
+            .select((
+                account::id,
+                account::first_name,
+                account::last_name,
+                account::email,
+            ))
+            .load::<PublicAccount>(conn)?)
     }
 
     pub fn patch(
