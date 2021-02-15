@@ -1,9 +1,17 @@
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{Data, HttpResponse, Json, Path};
 use bcrypt::{hash, DEFAULT_COST};
 use heck::TitleCase;
 
 use super::*;
-use crate::{db::Pool, organisation::Organisation, MainmanResponse};
+use crate::{
+    auth::Claim,
+    db::Pool,
+    organisation::{
+        invite::{NewOrganisationInvite, OrganisationInvite},
+        Organisation, OrganisationAccount,
+    },
+    MainmanResponse,
+};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct NewAccountPayload {
@@ -36,6 +44,8 @@ pub async fn account(
     Ok(Account::get(*account_id, &pool.get()?)?.into())
 }
 
+// organisation routes
+
 #[get("")]
 pub async fn organisation_accounts(
     pool: Data<Pool>,
@@ -45,4 +55,40 @@ pub async fn organisation_accounts(
     Ok(Organisation::get(*organisation_id, conn)?
         .accounts(conn)?
         .into())
+}
+
+#[post("/invites")]
+pub async fn invite_account(
+    pool: Data<Pool>,
+    payload: Json<NewOrganisationInvite>,
+    organisation_id: Path<i32>,
+) -> MainmanResponse<OrganisationInvite> {
+    Ok(NewOrganisationInvite {
+        organisation: *organisation_id,
+        ..payload.into_inner()
+    }
+    .create(&pool.get()?)?
+    .into())
+}
+
+#[post("/invites/{uuid}")]
+pub async fn accept_invite(
+    pool: Data<Pool>,
+    path: Path<(i32, uuid::Uuid)>,
+    claim: Claim,
+) -> MainmanResponse<OrganisationAccount> {
+    let conn = &pool.get()?;
+    Ok(OrganisationInvite::get((*path).0, (*path).1, conn)?
+        .accept(&claim, conn)?
+        .into())
+}
+
+#[delete("/invites/{uuid}")]
+pub async fn delete_invite(
+    pool: Data<Pool>,
+    path: Path<(i32, uuid::Uuid)>,
+) -> MainmanResult<HttpResponse> {
+    let conn = &pool.get()?;
+    OrganisationInvite::get((*path).0, (*path).1, conn)?.delete(conn)?;
+    Ok(HttpResponse::Accepted().finish())
 }

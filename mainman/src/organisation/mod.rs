@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use invite::OrganisationInvite;
 
 use crate::{
     account::Account,
@@ -7,11 +8,15 @@ use crate::{
     db::{Connection, Creatable},
     entity::Entity,
     maintainer::Maintainer,
-    schema::{account, entity, maintainer, organisation, organisation_account},
+    schema::{
+        account, entity, maintainer, organisation, organisation_account,
+        organisation_invite,
+    },
     MainmanResult,
 };
 
 mod handler;
+pub mod invite;
 pub mod plan;
 pub mod routes;
 
@@ -37,7 +42,7 @@ pub struct Organisation {
 }
 
 #[derive(
-    Debug, Serialize, Deserialize, Identifiable, Queryable, Associations,
+    Debug, Serialize, Identifiable, Queryable, Associations, Insertable,
 )]
 #[table_name = "organisation_account"]
 #[belongs_to(Account, foreign_key = "account")]
@@ -103,6 +108,15 @@ impl Organisation {
             .load::<Entity>(conn)?)
     }
 
+    pub fn invites(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<OrganisationInvite>> {
+        Ok(OrganisationInvite::belonging_to(self)
+            .select(organisation_invite::all_columns)
+            .load::<OrganisationInvite>(conn)?)
+    }
+
     pub fn accounts(
         &self,
         conn: &Connection,
@@ -126,6 +140,14 @@ impl Organisation {
         Ok(diesel::update(self)
             .set(payload)
             .get_result::<Organisation>(conn)?)
+    }
+}
+
+impl Creatable<OrganisationAccount> for OrganisationAccount {
+    fn create(&self, conn: &Connection) -> MainmanResult<OrganisationAccount> {
+        Ok(diesel::insert_into(organisation_account::table)
+            .values(self)
+            .get_result::<OrganisationAccount>(conn)?)
     }
 }
 

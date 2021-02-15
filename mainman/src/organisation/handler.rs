@@ -1,4 +1,5 @@
 use actix_web::web::{Data, Json, Path};
+use invite::OrganisationInvite;
 
 use super::*;
 use crate::{auth::Claim, db::Pool, MainmanResponse};
@@ -51,3 +52,14 @@ pub async fn patch_organisation<'a>(
 }
 
 // TODO: handle organisation removal
+
+#[get("/invites")]
+pub async fn invites(
+    pool: Data<Pool>,
+    organisation_id: Path<i32>,
+) -> MainmanResponse<Vec<OrganisationInvite>> {
+    let conn = &pool.get()?;
+    Ok(Organisation::get(*organisation_id, conn)?
+        .invites(conn)?
+        .into())
+}

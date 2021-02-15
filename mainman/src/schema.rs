@@ -163,6 +163,7 @@ joinable!(organisation -> plan (plan));
 joinable!(organisation_account -> account (account));
 joinable!(organisation_account -> account_role (account_role));
 joinable!(organisation_account -> organisation (organisation));
+joinable!(organisation_invite -> organisation (organisation));
 joinable!(refresh_token -> account (account_id));
 
 allow_tables_to_appear_in_same_query!(
@@ -177,6 +178,7 @@ allow_tables_to_appear_in_same_query!(
     maintenance_trigger,
     organisation,
     organisation_account,
+    organisation_invite,
     plan,
     refresh_token,
 );
