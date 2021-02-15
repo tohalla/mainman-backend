@@ -112,7 +112,16 @@ table! {
     organisation_account (account, organisation) {
         account -> Int4,
         organisation -> Int4,
-        account_role -> Int4,
+        account_role -> Nullable<Int4>,
+    }
+}
+
+table! {
+    organisation_invite (uuid) {
+        uuid -> Uuid,
+        organisation -> Int4,
+        email -> Text,
+        created_at -> Timestamp,
     }
 }
 

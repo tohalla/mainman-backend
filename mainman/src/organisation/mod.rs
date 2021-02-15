@@ -46,7 +46,7 @@ pub struct Organisation {
 pub struct OrganisationAccount {
     pub organisation: i32,
     pub account: i32,
-    pub account_role: i32,
+    pub account_role: Option<i32>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
