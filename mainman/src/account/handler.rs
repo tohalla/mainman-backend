@@ -57,7 +57,18 @@ pub async fn organisation_accounts(
         .into())
 }
 
-#[post("/invites")]
+#[get("invites")]
+pub async fn invites(
+    pool: Data<Pool>,
+    organisation_id: Path<i32>,
+) -> MainmanResponse<Vec<OrganisationInvite>> {
+    let conn = &pool.get()?;
+    Ok(Organisation::get(*organisation_id, conn)?
+        .invites(conn)?
+        .into())
+}
+
+#[post("invites")]
 pub async fn invite_account(
     pool: Data<Pool>,
     payload: Json<NewOrganisationInvite>,
@@ -65,13 +76,14 @@ pub async fn invite_account(
 ) -> MainmanResponse<OrganisationInvite> {
     Ok(NewOrganisationInvite {
         organisation: *organisation_id,
+        email: payload.email.to_lowercase(),
         ..payload.into_inner()
     }
     .create(&pool.get()?)?
     .into())
 }
 
-#[post("/invites/{uuid}")]
+#[post("invites/{uuid}")]
 pub async fn accept_invite(
     pool: Data<Pool>,
     path: Path<(i32, uuid::Uuid)>,
@@ -83,7 +95,7 @@ pub async fn accept_invite(
         .into())
 }
 
-#[delete("/invites/{uuid}")]
+#[delete("invites/{uuid}")]
 pub async fn delete_invite(
     pool: Data<Pool>,
     path: Path<(i32, uuid::Uuid)>,

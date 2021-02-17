@@ -12,11 +12,9 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
 }
 
 pub fn organisation_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(super::handler::create_account).service(
-        web::scope("")
-            .service(handler::organisation_accounts)
-            .service(handler::invite_account)
-            .service(handler::accept_invite)
-            .service(handler::delete_invite),
-    );
+    cfg.service(handler::organisation_accounts)
+        .service(handler::invites)
+        .service(handler::invite_account)
+        .service(handler::accept_invite)
+        .service(handler::delete_invite);
 }
