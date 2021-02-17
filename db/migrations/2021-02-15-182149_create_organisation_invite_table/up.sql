@@ -6,4 +6,4 @@ CREATE TABLE organisation_invite (
   UNIQUE(organisation, email)
 );
 
-GRANT SELECT, INSERT, UPDATE ON TABLE organisation_invite TO mainman_client;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE organisation_invite TO mainman_client;
