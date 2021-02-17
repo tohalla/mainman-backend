@@ -44,6 +44,15 @@ pub async fn account(
     Ok(Account::get(*account_id, &pool.get()?)?.into())
 }
 
+#[get("invites")]
+pub async fn invites(
+    pool: Data<Pool>,
+    account_id: Path<i32>,
+) -> MainmanResponse<Vec<OrganisationInvite>> {
+    let conn = &pool.get()?;
+    Ok(Account::get(*account_id, conn)?.invites(conn)?.into())
+}
+
 // organisation routes
 
 #[get("")]
@@ -58,7 +67,7 @@ pub async fn organisation_accounts(
 }
 
 #[get("invites")]
-pub async fn invites(
+pub async fn organisation_invites(
     pool: Data<Pool>,
     organisation_id: Path<i32>,
 ) -> MainmanResponse<Vec<OrganisationInvite>> {

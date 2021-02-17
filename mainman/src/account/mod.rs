@@ -7,7 +7,8 @@ use stripe::{
 
 use crate::{
     db::{Connection, Creatable},
-    schema::account,
+    organisation::invite::OrganisationInvite,
+    schema::{account, organisation_invite},
     MainmanResult,
 };
 
@@ -77,6 +78,15 @@ impl Account {
         self.set_stripe_customer(conn, customer.id.to_owned())?;
 
         Ok(customer)
+    }
+
+    pub fn invites(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<OrganisationInvite>> {
+        Ok(organisation_invite::table
+            .filter(organisation_invite::email.eq(&self.email))
+            .load::<OrganisationInvite>(conn)?)
     }
 }
 
