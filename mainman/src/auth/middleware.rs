@@ -1,3 +1,4 @@
+use actix_http::http::StatusCode;
 use actix_service::{Service, Transform};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
@@ -106,7 +107,7 @@ fn is_admin(
     if admin_account == claim.account_id {
         return Ok(());
     }
-    Err(Error::unauthorized().into())
+    Err(StatusCode::FORBIDDEN.into())
 }
 
 fn check_organisation_access(
@@ -128,7 +129,7 @@ fn check_organisation_access(
 fn check_account(claim: &Claim, path_info: &PathInfo) -> MainmanResult<()> {
     if let Some(account_id) = path_info.account_id {
         if claim.account_id != account_id {
-            return Err(Error::unauthorized().into());
+            return Err(StatusCode::FORBIDDEN.into());
         }
     }
     Ok(())

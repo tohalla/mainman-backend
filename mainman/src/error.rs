@@ -197,6 +197,17 @@ impl From<ValidationErrors> for ErrorResponse {
     }
 }
 
+impl From<StatusCode> for ErrorResponse {
+    fn from(status: StatusCode) -> Self {
+        ErrorResponse::from(Error {
+            source: None,
+            status: status.as_u16(),
+            title: None,
+            detail: None,
+        })
+    }
+}
+
 impl Error {
     fn from_validation_error(field: &str, error: &ValidationError) -> Self {
         Error {
