@@ -12,9 +12,12 @@ use validator::{ValidationError, ValidationErrors, ValidationErrorsKind};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Error {
+    #[serde(skip_serializing_if = "Option::is_none")]
     source: Option<String>,
     status: u16,
+    #[serde(skip_serializing_if = "Option::is_none")]
     title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     detail: Option<String>,
 }
 
