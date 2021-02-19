@@ -1,6 +1,6 @@
 use actix_http::{ResponseBuilder, ResponseError};
 use actix_web::{
-    error::BlockingError,
+    error::{BlockingError, JsonPayloadError},
     http::{header, StatusCode},
     HttpResponse,
 };
@@ -159,7 +159,18 @@ impl From<stripe::error::Error> for ErrorResponse {
         ErrorResponse::from(Error {
             source: None,
             status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
-            title: Some("stripe error".to_owned()),
+            title: Some("Stripe error".to_owned()),
+            detail: Some(error.to_string()),
+        })
+    }
+}
+
+impl From<JsonPayloadError> for ErrorResponse {
+    fn from(error: JsonPayloadError) -> ErrorResponse {
+        ErrorResponse::from(Error {
+            source: None,
+            status: StatusCode::BAD_REQUEST.as_u16(),
+            title: Some("Invalid payload".to_owned()),
             detail: Some(error.to_string()),
         })
     }
