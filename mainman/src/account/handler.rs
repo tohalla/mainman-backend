@@ -1,6 +1,7 @@
 use actix_web::web::{Data, HttpResponse, Json, Path};
 use bcrypt::{hash, DEFAULT_COST};
 use heck::TitleCase;
+use validator::Validate;
 
 use super::*;
 use crate::{
@@ -13,11 +14,13 @@ use crate::{
     MainmanResponse,
 };
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Validate)]
 pub struct NewAccountPayload {
     pub first_name: String,
     pub last_name: String,
+    #[validate(email(message = "invalidEmail"))]
     pub email: String,
+    #[validate(length(min = 5))]
     pub password: String,
 }
 
@@ -26,6 +29,7 @@ pub async fn create_account(
     pool: Data<Pool>,
     payload: Json<NewAccountPayload>,
 ) -> MainmanResponse<Account> {
+    payload.validate()?;
     Ok(NewAccount {
         email: &payload.email,
         first_name: &payload.first_name.to_title_case(),

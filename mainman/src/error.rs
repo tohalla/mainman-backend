@@ -8,9 +8,11 @@ use bcrypt::BcryptError;
 use diesel::{r2d2::PoolError, result::Error as DieselError};
 use futures::channel::mpsc::SendError;
 use jsonwebtoken;
+use validator::{ValidationError, ValidationErrors, ValidationErrorsKind};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Error {
+    source: Option<String>,
     status: u16,
     title: Option<String>,
     detail: Option<String>,
@@ -70,6 +72,7 @@ impl Error {
 impl Default for Error {
     fn default() -> Self {
         Error {
+            source: None,
             status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
             title: None,
             detail: None,
@@ -81,11 +84,13 @@ impl From<diesel::result::Error> for ErrorResponse {
     fn from(error: diesel::result::Error) -> ErrorResponse {
         ErrorResponse::from(match error {
             DieselError::DatabaseError(_, info) => Error {
+                source: None,
                 status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
                 title: Some("Database error".to_owned()),
                 detail: info.details().map(|details| details.to_owned()),
             },
             DieselError::NotFound => Error {
+                source: None,
                 status: StatusCode::NOT_FOUND.as_u16(),
                 title: Some("Database error".to_owned()),
                 detail: Some("Not found".to_owned()),
@@ -98,6 +103,7 @@ impl From<diesel::result::Error> for ErrorResponse {
 impl From<PoolError> for ErrorResponse {
     fn from(error: PoolError) -> ErrorResponse {
         ErrorResponse::from(Error {
+            source: None,
             status: StatusCode::NOT_FOUND.as_u16(),
             title: Some("Pool error".to_owned()),
             detail: Some(error.to_string()),
@@ -129,6 +135,7 @@ impl From<BcryptError> for ErrorResponse {
 impl From<std::str::Utf8Error> for ErrorResponse {
     fn from(error: std::str::Utf8Error) -> ErrorResponse {
         ErrorResponse::from(Error {
+            source: None,
             status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
             title: Some("Encoding error".to_owned()),
             detail: Some(error.to_string()),
@@ -139,6 +146,7 @@ impl From<std::str::Utf8Error> for ErrorResponse {
 impl From<jsonwebtoken::errors::Error> for ErrorResponse {
     fn from(error: jsonwebtoken::errors::Error) -> ErrorResponse {
         ErrorResponse::from(Error {
+            source: None,
             status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
             title: Some("JWT error".to_owned()),
             detail: Some(error.to_string()),
@@ -149,9 +157,39 @@ impl From<jsonwebtoken::errors::Error> for ErrorResponse {
 impl From<stripe::error::Error> for ErrorResponse {
     fn from(error: stripe::error::Error) -> ErrorResponse {
         ErrorResponse::from(Error {
+            source: None,
             status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
             title: Some("stripe error".to_owned()),
             detail: Some(error.to_string()),
         })
+    }
+}
+
+impl From<ValidationErrors> for ErrorResponse {
+    fn from(validation_errors: ValidationErrors) -> ErrorResponse {
+        let mut errors = Vec::<Error>::new();
+        for (field, error) in validation_errors.into_errors().iter() {
+            match error {
+                ValidationErrorsKind::Field(validation_errors) => {
+                    for error in validation_errors {
+                        errors.push(Error::from_validation_error(field, error))
+                    }
+                }
+                _ => {}
+            };
+        }
+
+        ErrorResponse { errors }
+    }
+}
+
+impl Error {
+    fn from_validation_error(field: &str, error: &ValidationError) -> Self {
+        Error {
+            source: Some(field.to_owned()),
+            title: Some("Validation error".to_owned()),
+            detail: error.message.clone().map(|message| message.into_owned()),
+            status: StatusCode::BAD_REQUEST.as_u16(),
+        }
     }
 }
