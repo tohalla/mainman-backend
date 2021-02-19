@@ -106,7 +106,7 @@ fn is_admin(
     if admin_account == claim.account_id {
         return Ok(());
     }
-    Err(Error::UnauthorizedError)
+    Err(Error::unauthorized().into())
 }
 
 fn check_organisation_access(
@@ -128,7 +128,7 @@ fn check_organisation_access(
 fn check_account(claim: &Claim, path_info: &PathInfo) -> MainmanResult<()> {
     if let Some(account_id) = path_info.account_id {
         if claim.account_id != account_id {
-            return Err(Error::UnauthorizedError);
+            return Err(Error::unauthorized().into());
         }
     }
     Ok(())

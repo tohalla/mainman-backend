@@ -18,7 +18,7 @@ use futures::{
     SinkExt, Stream, StreamExt,
 };
 
-use crate::{error, MainmanResult};
+use crate::MainmanResult;
 
 mod handler;
 pub mod routes;
@@ -86,10 +86,7 @@ impl Broadcaster {
     ) -> MainmanResult<()> {
         if let Some(client) = self.clients.get_mut(&msg.recipient) {
             let bytes: Bytes = msg.into();
-            return client
-                .send(bytes)
-                .await
-                .map_err(|_| error::Error::InternalServerError(None));
+            return Ok(client.send(bytes).await?);
         }
         Ok(())
     }

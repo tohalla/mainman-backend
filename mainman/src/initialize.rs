@@ -9,7 +9,7 @@ pub async fn initialize() -> () {
 
     info!(target: "mainman","synchronizing database with stripe started");
     if let Err(err) = initialize_plans(&client).await {
-        error!("Error: {}. Failed to synchronize plans", err);
+        error!("Error: {:?}. Failed to synchronize plans", err);
     }
     info!(target: "mainman","synchronization finished");
 }

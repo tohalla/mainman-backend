@@ -30,7 +30,7 @@ mod routes;
 mod schema;
 mod server;
 
-pub type MainmanResult<T> = Result<T, error::Error>;
+pub type MainmanResult<T> = Result<T, error::ErrorResponse>;
 pub type MainmanResponse<T> = MainmanResult<response::Response<T>>;
 
 #[actix_web::main]

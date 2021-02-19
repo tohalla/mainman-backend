@@ -62,7 +62,7 @@ impl<T: Serialize> From<T> for Response<T> {
 }
 
 impl<T: Serialize> Responder for Response<T> {
-    type Error = error::Error;
+    type Error = error::ErrorResponse;
     type Future = Ready<actix_http::Result<actix_http::Response, Self::Error>>;
 
     fn respond_to(self, _: &HttpRequest) -> Self::Future {
@@ -70,7 +70,7 @@ impl<T: Serialize> Responder for Response<T> {
             Ok(body) => ok(HttpResponse::build(self.status_code)
                 .content_type("application/json")
                 .body(body)),
-            Err(_) => err(error::Error::InternalServerError(None)),
+            Err(_) => err(error::Error::default().into()),
         }
     }
 }

@@ -12,7 +12,11 @@ use jsonwebtoken::{
 use uuid::Uuid;
 
 use crate::{
-    config, db::Connection, error::Error, schema::refresh_token, MainmanResult,
+    config,
+    db::Connection,
+    error::{Error, ErrorResponse},
+    schema::refresh_token,
+    MainmanResult,
 };
 
 mod handler;
@@ -43,14 +47,13 @@ pub struct RefreshToken(#[column_name = "token"] pub Uuid);
 
 impl Claim {
     pub fn jwt(&self) -> MainmanResult<String> {
-        encode(
+        Ok(encode(
             &Header::default(),
             &self,
             &EncodingKey::from_secret(
                 std::env::var("JWT_KEY").unwrap_or("".to_owned()).as_ref(),
             ),
-        )
-        .map_err(|_| Error::InternalServerError(None))
+        )?)
     }
 
     pub fn decode(token: &str, validation: &Validation) -> MainmanResult<Self> {
@@ -74,7 +77,7 @@ impl Claim {
             Some(authentication_token) => {
                 Claim::decode(&authentication_token, validation)
             }
-            None => Err(Error::UnauthorizedError),
+            None => Err(Error::unauthorized().into()),
         }
     }
 }
@@ -90,12 +93,12 @@ impl Credentials {
                     .bind::<sql_types::Text, _>(self.email.to_lowercase()),
             )
             .first::<(i32, Vec<u8>)>(conn)
-            .map_err(|_| Error::UnauthorizedError)?;
+            .map_err(|_| Error::unauthorized())?;
 
         if verify(&self.password, std::str::from_utf8(&result.1)?)? {
             Ok(Claim::from(result.0))
         } else {
-            Err(Error::UnauthorizedError)
+            Err(Error::unauthorized().into())
         }
     }
 }
@@ -189,12 +192,12 @@ impl RefreshToken {
 
             return Ok(account_id.into());
         }
-        Err(Error::UnauthorizedError)
+        Err(Error::unauthorized().into())
     }
 }
 
 impl FromRequest for Claim {
-    type Error = Error;
+    type Error = ErrorResponse;
     type Future = Ready<Result<Self, Self::Error>>;
     type Config = ();
 
@@ -207,7 +210,7 @@ impl FromRequest for Claim {
             &validation,
         ) {
             Ok(claim) => ok(claim),
-            Err(e) => err(e),
+            Err(e) => err(e.into()),
         }
     }
 }
