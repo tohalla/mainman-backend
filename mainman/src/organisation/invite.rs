@@ -5,7 +5,7 @@ use crate::{
     auth::Claim,
     db::{Connection, Creatable},
     organisation::Organisation,
-    schema::{account, organisation_invite},
+    schema::{account, organisation_account, organisation_invite},
     MainmanResult,
 };
 
@@ -24,9 +24,10 @@ pub struct OrganisationInvite {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Debug, Deserialize, Insertable)]
+#[derive(Debug, Deserialize, Insertable, Validate)]
 #[table_name = "organisation_invite"]
 pub struct NewOrganisationInvite {
+    #[validate(email(message = "invalidEmail"))]
     pub email: String,
     #[serde(skip_deserializing)]
     pub organisation: i32,
@@ -74,10 +75,20 @@ impl OrganisationInvite {
 
 impl Creatable<OrganisationInvite> for NewOrganisationInvite {
     fn create(&self, conn: &Connection) -> MainmanResult<OrganisationInvite> {
-        account::table
-            .select(account::id)
+        // check that account exists and is not part of the organisation already
+        let (_, organisation_account) = account::table
             .filter(account::email.eq(&self.email))
-            .first::<i32>(conn)?;
+            .left_join(organisation_account::table)
+            .select((account::id, organisation_account::account.nullable()))
+            .first::<(i32, Option<i32>)>(conn)?;
+
+        if organisation_account.is_some() {
+            return Err(crate::error::Error::default()
+                .detail("accountInOrganisation")
+                .source("email")
+                .into());
+        }
+
         Ok(diesel::insert_into(organisation_invite::table)
             .values(self)
             .get_result::<OrganisationInvite>(conn)?)

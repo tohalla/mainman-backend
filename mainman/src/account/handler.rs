@@ -87,6 +87,7 @@ pub async fn invite_account(
     payload: Json<NewOrganisationInvite>,
     organisation_id: Path<i32>,
 ) -> MainmanResponse<OrganisationInvite> {
+    payload.validate()?;
     Ok(NewOrganisationInvite {
         organisation: *organisation_id,
         email: payload.email.to_lowercase(),

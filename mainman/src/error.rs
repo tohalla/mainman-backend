@@ -43,6 +43,17 @@ impl ResponseError for ErrorResponse {
     }
 }
 
+impl ErrorResponse {
+    pub fn new() -> Self {
+        ErrorResponse { errors: Vec::new() }
+    }
+
+    pub fn add_error(&mut self, error: Error) -> &mut Self {
+        self.errors.push(error);
+        self
+    }
+}
+
 impl std::fmt::Display for ErrorResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
@@ -68,6 +79,34 @@ impl Error {
         Error {
             status: StatusCode::UNAUTHORIZED.as_u16(),
             ..Self::default()
+        }
+    }
+
+    pub fn status(self, status: StatusCode) -> Self {
+        Error {
+            status: status.as_u16(),
+            ..self
+        }
+    }
+
+    pub fn detail(self, detail: &str) -> Self {
+        Error {
+            detail: Some(detail.to_owned()),
+            ..self
+        }
+    }
+
+    pub fn title(self, title: &str) -> Self {
+        Error {
+            title: Some(title.to_owned()),
+            ..self
+        }
+    }
+
+    pub fn source(self, source: &str) -> Self {
+        Error {
+            source: Some(source.to_owned()),
+            ..self
         }
     }
 }

@@ -18,7 +18,6 @@ use std::task::{Context, Poll};
 use super::*;
 use crate::{
     db::{Connection, Pool},
-    error::Error,
     organisation::OrganisationAccount,
     schema::{organisation, organisation_account},
     MainmanResult,
