@@ -18,7 +18,7 @@ use crate::{
 pub struct NewAccountPayload {
     pub first_name: String,
     pub last_name: String,
-    #[validate(email(message = "invalidEmail"))]
+    #[validate(email(message = "invalid_email"))]
     pub email: String,
     #[validate(length(min = 5))]
     pub password: String,

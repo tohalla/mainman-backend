@@ -82,32 +82,24 @@ impl Error {
         }
     }
 
-    pub fn status(self, status: StatusCode) -> Self {
-        Error {
-            status: status.as_u16(),
-            ..self
-        }
+    pub fn status(mut self, status: StatusCode) -> Self {
+        self.status = status.as_u16();
+        self
     }
 
-    pub fn detail(self, detail: &str) -> Self {
-        Error {
-            detail: Some(detail.to_owned()),
-            ..self
-        }
+    pub fn detail(mut self, detail: &str) -> Self {
+        self.detail = Some(detail.to_owned());
+        self
     }
 
-    pub fn title(self, title: &str) -> Self {
-        Error {
-            title: Some(title.to_owned()),
-            ..self
-        }
+    pub fn title(mut self, title: &str) -> Self {
+        self.title = Some(title.to_owned());
+        self
     }
 
-    pub fn source(self, source: &str) -> Self {
-        Error {
-            source: Some(source.to_owned()),
-            ..self
-        }
+    pub fn source(mut self, source: &str) -> Self {
+        self.source = Some(source.to_owned());
+        self
     }
 }
 

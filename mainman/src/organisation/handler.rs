@@ -1,3 +1,4 @@
+use account_role::AccountRole;
 use actix_web::web::{Data, Json, Path};
 use invite::OrganisationInvite;
 
@@ -18,14 +19,17 @@ pub async fn create_organisation(
     payload: Json<NewOrganisation>,
     claim: Claim,
 ) -> MainmanResponse<Organisation> {
-    Ok(NewOrganisation {
-        admin_account: claim.account_id,
-        ..payload.into_inner()
+    let conn = &pool.get()?;
+    let organisation = payload.create(conn)?;
+    OrganisationAccount {
+        account_role: Some(AccountRole::public_role("administrator", conn)?.id),
+        organisation: organisation.id,
+        account: claim.account_id,
     }
-    .create(&pool.get()?)?
-    .into())
+    .create(conn)?;
 
     // TODO: handle adding stripe subscription (link price with customer id)
+    Ok(organisation.into())
 }
 
 // /{organisation_id}

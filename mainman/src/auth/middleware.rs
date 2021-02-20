@@ -19,7 +19,7 @@ use super::*;
 use crate::{
     db::{Connection, Pool},
     organisation::OrganisationAccount,
-    schema::{organisation, organisation_account},
+    schema::organisation_account,
     MainmanResult,
 };
 
@@ -88,25 +88,9 @@ fn check_access(
 ) -> MainmanResult<()> {
     check_account(&claim, &path_info)?;
     if let Some(organisation_id) = path_info.organisation_id {
-        is_admin(&claim, organisation_id, conn)
-            .or(check_organisation_access(claim, organisation_id, conn))?;
+        check_organisation_access(claim, organisation_id, conn)?;
     }
     Ok(())
-}
-
-fn is_admin(
-    claim: &Claim,
-    organisation_id: i32,
-    conn: &Connection,
-) -> MainmanResult<()> {
-    let admin_account = organisation::table
-        .filter(organisation::dsl::id.eq(organisation_id))
-        .select(organisation::admin_account)
-        .first::<i32>(conn)?;
-    if admin_account == claim.account_id {
-        return Ok(());
-    }
-    Err(StatusCode::FORBIDDEN.into())
 }
 
 fn check_organisation_access(

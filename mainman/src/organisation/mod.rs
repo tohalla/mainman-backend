@@ -15,6 +15,7 @@ use crate::{
     MainmanResult,
 };
 
+pub mod account_role;
 mod handler;
 pub mod invite;
 pub mod plan;
@@ -37,7 +38,6 @@ pub struct Organisation {
     pub name: String,
     pub organisation_identifier: Option<String>,
     pub locale: String,
-    pub admin_account: i32,
     pub plan: i32,
 }
 
@@ -61,8 +61,6 @@ pub struct NewOrganisation {
     organisation_identifier: String,
     locale: String,
     plan: i32,
-    #[serde(skip_deserializing)]
-    admin_account: i32,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
@@ -87,9 +85,10 @@ impl Organisation {
         account_id: i32,
         conn: &Connection,
     ) -> MainmanResult<Vec<Organisation>> {
-        use crate::schema::organisation::dsl::*;
-        Ok(organisation
-            .filter(admin_account.eq(account_id))
+        Ok(organisation::table
+            .inner_join(organisation_account::table)
+            .select(organisation::all_columns)
+            .filter(organisation_account::account.eq(account_id))
             .load::<Organisation>(conn)?)
     }
 

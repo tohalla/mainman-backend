@@ -27,7 +27,7 @@ pub struct OrganisationInvite {
 #[derive(Debug, Deserialize, Insertable, Validate)]
 #[table_name = "organisation_invite"]
 pub struct NewOrganisationInvite {
-    #[validate(email(message = "invalidEmail"))]
+    #[validate(email(message = "invalid_email"))]
     pub email: String,
     #[serde(skip_deserializing)]
     pub organisation: i32,
@@ -84,7 +84,7 @@ impl Creatable<OrganisationInvite> for NewOrganisationInvite {
 
         if organisation_account.is_some() {
             return Err(crate::error::Error::default()
-                .detail("accountInOrganisation")
+                .detail("account_in_organisation")
                 .source("email")
                 .into());
         }

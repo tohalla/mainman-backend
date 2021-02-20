@@ -16,7 +16,7 @@ table! {
         id -> Int4,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
-        organisation -> Int4,
+        organisation -> Nullable<Int4>,
         name -> Varchar,
         rights -> Jsonb,
     }
@@ -103,7 +103,6 @@ table! {
         name -> Varchar,
         organisation_identifier -> Nullable<Varchar>,
         locale -> Varchar,
-        admin_account -> Int4,
         plan -> Int4,
     }
 }
@@ -158,7 +157,6 @@ joinable!(maintenance_request -> maintenance_trigger (maintenance_trigger));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));
 joinable!(maintenance_trigger -> entity (entity));
-joinable!(organisation -> account (admin_account));
 joinable!(organisation -> plan (plan));
 joinable!(organisation_account -> account (account));
 joinable!(organisation_account -> account_role (account_role));
