@@ -7,7 +7,7 @@ use stripe::{
 
 use crate::{
     db::{Connection, Creatable},
-    organisation::invite::OrganisationInvite,
+    organisation::{account_role::AccountRole, invite::OrganisationInvite},
     schema::{account, organisation_invite},
     MainmanResult,
 };
@@ -38,6 +38,7 @@ pub struct PublicAccount {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub email: String,
+    pub role: Option<AccountRole>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]

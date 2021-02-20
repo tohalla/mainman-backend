@@ -1,3 +1,4 @@
+use account_role::AccountRole;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use invite::OrganisationInvite;
@@ -9,7 +10,7 @@ use crate::{
     entity::Entity,
     maintainer::Maintainer,
     schema::{
-        account, entity, maintainer, organisation, organisation_account,
+        self, account, entity, maintainer, organisation, organisation_account,
         organisation_invite,
     },
     MainmanResult,
@@ -122,13 +123,29 @@ impl Organisation {
     ) -> MainmanResult<Vec<PublicAccount>> {
         Ok(OrganisationAccount::belonging_to(self)
             .inner_join(account::table)
+            .left_join(schema::account_role::table)
             .select((
-                account::id,
-                account::first_name,
-                account::last_name,
-                account::email,
+                (
+                    account::id,
+                    account::first_name,
+                    account::last_name,
+                    account::email,
+                ),
+                schema::account_role::all_columns.nullable(),
             ))
-            .load::<PublicAccount>(conn)?)
+            .load::<(
+                (i32, Option<String>, Option<String>, String),
+                Option<AccountRole>,
+            )>(conn)?
+            .into_iter()
+            .map(|((id, first_name, last_name, email), role)| PublicAccount {
+                role,
+                id,
+                first_name,
+                last_name,
+                email,
+            })
+            .collect())
     }
 
     pub fn patch(
