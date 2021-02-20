@@ -5,6 +5,14 @@ use invite::OrganisationInvite;
 use super::*;
 use crate::{auth::Claim, db::Pool, MainmanResponse};
 
+#[derive(Debug, Serialize)]
+pub struct DetailedOrganisation {
+    #[serde(flatten)]
+    organisation: Organisation,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    overview: Option<OrganisationOverview>,
+}
+
 #[get("")]
 pub async fn get_organisations(
     pool: Data<Pool>,
@@ -38,8 +46,14 @@ pub async fn create_organisation(
 pub async fn get_organisation(
     pool: Data<Pool>,
     organisation_id: Path<i32>,
-) -> MainmanResponse<Organisation> {
-    Ok(Organisation::get(*organisation_id, &pool.get()?)?.into())
+) -> MainmanResponse<DetailedOrganisation> {
+    let conn = &pool.get()?;
+    let organisation = Organisation::get(*organisation_id, conn)?;
+    Ok(DetailedOrganisation {
+        overview: Some(organisation.overview(conn)?),
+        organisation,
+    }
+    .into())
 }
 
 #[patch("")]

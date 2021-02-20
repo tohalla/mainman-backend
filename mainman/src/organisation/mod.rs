@@ -1,6 +1,6 @@
 use account_role::AccountRole;
 use chrono::NaiveDateTime;
-use diesel::prelude::*;
+use diesel::{prelude::*, sql_query, sql_types::Integer};
 use invite::OrganisationInvite;
 
 use crate::{
@@ -72,6 +72,16 @@ pub struct PatchOrganisation {
     locale: Option<String>,
 }
 
+#[derive(Debug, Serialize, QueryableByName)]
+pub struct OrganisationOverview {
+    #[sql_type = "Integer"]
+    maintainers: i32,
+    #[sql_type = "Integer"]
+    entities: i32,
+    #[sql_type = "Integer"]
+    accounts: i32,
+}
+
 impl Organisation {
     pub fn get(
         organisation_id: i32,
@@ -82,12 +92,23 @@ impl Organisation {
             .first::<Organisation>(conn)?)
     }
 
+    pub fn overview(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<OrganisationOverview> {
+        Ok(sql_query(
+            "SELECT maintainers::INTEGER, entities::INTEGER, accounts::INTEGER FROM organisation_overview WHERE id = $1::INTEGER",
+        )
+        .bind::<Integer, _>(self.id)
+        .get_result(conn)?)
+    }
+
     pub fn all(
         account_id: i32,
         conn: &Connection,
     ) -> MainmanResult<Vec<Organisation>> {
-        Ok(organisation::table
-            .inner_join(organisation_account::table)
+        Ok(organisation_account::table
+            .inner_join(organisation::table)
             .select(organisation::all_columns)
             .filter(organisation_account::account.eq(account_id))
             .load::<Organisation>(conn)?)
