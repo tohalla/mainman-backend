@@ -41,7 +41,6 @@ impl MaintenanceTrigger {
     pub fn get(uuid: Uuid, conn: &Connection) -> MainmanResult<Self> {
         Ok(maintenance_trigger::table
             .find(uuid)
-            .filter(maintenance_trigger::uuid.eq(uuid))
             .first::<MaintenanceTrigger>(conn)?)
     }
 

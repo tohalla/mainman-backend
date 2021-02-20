@@ -1,5 +1,8 @@
 use actix_web::web;
 
+use super::handler;
+
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(super::handler::create_maintenance_request);
+    cfg.service(handler::get_trigger)
+        .service(handler::create_maintenance_request);
 }

@@ -13,6 +13,14 @@ use crate::{
     MainmanResponse,
 };
 
+#[get("{uuid}")]
+pub async fn get_trigger(
+    pool: Data<Pool>,
+    uuid: Path<Uuid>,
+) -> MainmanResponse<MaintenanceTrigger> {
+    Ok(MaintenanceTrigger::get(*uuid, &pool.get()?)?.into())
+}
+
 #[post("{uuid}")]
 pub async fn create_maintenance_request(
     broker: Data<Mutex<Broadcaster>>,
