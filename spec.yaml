@@ -1,0 +1,33 @@
+swagger: 2.0
+schemes:
+  - https
+host: localhost
+info:
+  description: |
+    Mainman API documentation
+    # Introduction
+    # Authentication
+  title: Mainman
+  version: 0.0.1
+basePath: /api/v1
+
+tags:
+  - name: organisation
+
+x-tagGroups:
+  - name: Organisation resources
+    tags:
+      - organisation
+
+paths:
+  /organisation:
+    tags:
+      - organisation
+    summary: Create a new organisation
+    description: Creates a new organisation
+    operationId: create_organisation
+    consumes:
+      - application/json
+    produces:
+      - application/json
+# definitions:
