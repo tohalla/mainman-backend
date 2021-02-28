@@ -146,6 +146,26 @@ table! {
     }
 }
 
+table! {
+    template (id) {
+        id -> Int8,
+        created_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
+        organisation -> Nullable<Int4>,
+        name -> Nullable<Varchar>,
+        content -> Jsonb,
+        is_draft -> Bool,
+        template_type -> Int4,
+    }
+}
+
+table! {
+    template_type (id) {
+        id -> Int4,
+        name -> Varchar,
+    }
+}
+
 joinable!(account_role -> organisation (organisation));
 joinable!(entity -> organisation (organisation));
 joinable!(maintainer -> account (account));
@@ -163,6 +183,8 @@ joinable!(organisation_account -> account_role (account_role));
 joinable!(organisation_account -> organisation (organisation));
 joinable!(organisation_invite -> organisation (organisation));
 joinable!(refresh_token -> account (account_id));
+joinable!(template -> organisation (organisation));
+joinable!(template -> template_type (template_type));
 
 allow_tables_to_appear_in_same_query!(
     account,
@@ -179,4 +201,6 @@ allow_tables_to_appear_in_same_query!(
     organisation_invite,
     plan,
     refresh_token,
+    template,
+    template_type,
 );
