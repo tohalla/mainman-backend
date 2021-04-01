@@ -3,7 +3,7 @@ use actix_service::{Service, Transform};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     web::Data,
-    HttpMessage, HttpResponse,
+    HttpMessage,
 };
 use diesel::prelude::*;
 use futures::{
@@ -18,6 +18,7 @@ use std::task::{Context, Poll};
 use super::*;
 use crate::{
     db::{Connection, Pool},
+    error::{Error, ErrorResponse},
     organisation::OrganisationAccount,
     schema::organisation_account,
     MainmanResult,
@@ -187,7 +188,11 @@ where
             }
         }
         Box::pin(ok(req.into_response(
-            HttpResponse::Unauthorized().finish().into_body(),
+            HttpResponse::Unauthorized()
+                .body(json!(
+                    ErrorResponse::new().add_error(Error::unauthorized())
+                ))
+                .into_body(),
         )))
     }
 }
