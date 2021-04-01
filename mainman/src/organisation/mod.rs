@@ -11,8 +11,9 @@ use crate::{
     maintainer::Maintainer,
     schema::{
         self, account, entity, maintainer, organisation, organisation_account,
-        organisation_invite,
+        organisation_invite, template,
     },
+    template::Template,
     MainmanResult,
 };
 
@@ -127,6 +128,12 @@ impl Organisation {
         Ok(Entity::belonging_to(self)
             .select(entity::all_columns)
             .load::<Entity>(conn)?)
+    }
+
+    pub fn templates(&self, conn: &Connection) -> MainmanResult<Vec<Template>> {
+        Ok(Template::belonging_to(self)
+            .select(template::all_columns)
+            .load::<Template>(conn)?)
     }
 
     pub fn invites(

@@ -1,7 +1,7 @@
 use actix_web::web;
 
-use crate::auth::middleware::RequireAuthentication;
 use crate::{account, entity, maintainer};
+use crate::{auth::middleware::RequireAuthentication, template};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -20,6 +20,10 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             .service(
                 web::scope("/accounts")
                     .configure(account::routes::organisation_routes),
+            )
+            .service(
+                web::scope("/templates")
+                    .configure(template::routes::organisation_routes),
             ),
     )
     .service(
