@@ -21,10 +21,10 @@ services:
       - ./.env
       - ./db/.env
 
-  migrate:
+  diesel:
     build:
       context: ./db
-      dockerfile: migrate.Dockerfile
+      dockerfile: diesel.Dockerfile
     depends_on:
       - db
     links:
@@ -32,10 +32,10 @@ services:
     env_file:
       - ./db/.env
     volumes:
-      - ${PWD}/db/scripts:/migrate/scripts:ro
-      - ${PWD}/db/migrations:/migrate/migrations:ro
+      - ${PWD}/db/scripts:/diesel/scripts:ro
+      - ${PWD}/db/migrations:/diesel/migrations:ro
       - ${PWD}/mainman/src/schema.rs:/migrate/schema.rs
-      - ${PWD}/diesel.toml:/migrate/diesel.toml
+      - ${PWD}/diesel.toml:/diesel/diesel.toml
 
   redis:
     image: redis:latest

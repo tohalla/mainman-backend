@@ -1,6 +1,6 @@
 FROM rust:1
 
-WORKDIR /migrate
+WORKDIR /diesel
 COPY ./scripts ./scripts
 RUN chmod +x ./scripts/*
 
