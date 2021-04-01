@@ -1,6 +1,6 @@
 table! {
     account (id) {
-        id -> Int4,
+        id -> Int8,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         first_name -> Nullable<Varchar>,
@@ -13,10 +13,10 @@ table! {
 
 table! {
     account_role (id) {
-        id -> Int4,
+        id -> Int8,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
-        organisation -> Nullable<Int4>,
+        organisation -> Nullable<Int8>,
         name -> Varchar,
         rights -> Jsonb,
     }
@@ -29,17 +29,17 @@ table! {
         updated_at -> Nullable<Timestamp>,
         name -> Varchar,
         description -> Nullable<Text>,
-        organisation -> Int4,
+        organisation -> Int8,
     }
 }
 
 table! {
     maintainer (id) {
-        id -> Int4,
+        id -> Int8,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
-        organisation -> Int4,
-        account -> Nullable<Int4>,
+        organisation -> Int8,
+        account -> Nullable<Int8>,
         details -> Nullable<Jsonb>,
     }
 }
@@ -47,14 +47,14 @@ table! {
 table! {
     maintainer_entity (entity, maintainer) {
         entity -> Uuid,
-        maintainer -> Int4,
-        organisation -> Int4,
+        maintainer -> Int8,
+        organisation -> Int8,
     }
 }
 
 table! {
     maintenance_event (id) {
-        id -> Int4,
+        id -> Int8,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         resolved_at -> Nullable<Timestamp>,
@@ -67,7 +67,7 @@ table! {
     maintenance_request (id) {
         id -> Int8,
         created_at -> Timestamp,
-        created_by -> Nullable<Int4>,
+        created_by -> Nullable<Int8>,
         entity -> Uuid,
         description -> Nullable<Text>,
         maintenance_trigger -> Nullable<Uuid>,
@@ -81,8 +81,8 @@ table! {
         updated_at -> Nullable<Timestamp>,
         accepted_at -> Nullable<Timestamp>,
         resolved_at -> Nullable<Timestamp>,
-        maintenance_event -> Int4,
-        maintainer -> Int4,
+        maintenance_event -> Int8,
+        maintainer -> Int8,
         is_available -> Bool,
     }
 }
@@ -97,7 +97,7 @@ table! {
 
 table! {
     organisation (id) {
-        id -> Int4,
+        id -> Int8,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
         name -> Varchar,
@@ -109,16 +109,16 @@ table! {
 
 table! {
     organisation_account (account, organisation) {
-        account -> Int4,
-        organisation -> Int4,
-        account_role -> Nullable<Int4>,
+        account -> Int8,
+        organisation -> Int8,
+        account_role -> Nullable<Int8>,
     }
 }
 
 table! {
     organisation_invite (uuid) {
         uuid -> Uuid,
-        organisation -> Int4,
+        organisation -> Int8,
         email -> Text,
         created_at -> Timestamp,
     }
@@ -140,7 +140,7 @@ table! {
 table! {
     refresh_token (token) {
         created_at -> Nullable<Timestamp>,
-        account_id -> Int4,
+        account_id -> Int8,
         token -> Uuid,
         authentication_token -> Nullable<Text>,
     }
@@ -151,7 +151,7 @@ table! {
         id -> Int8,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
-        organisation -> Nullable<Int4>,
+        organisation -> Nullable<Int8>,
         name -> Nullable<Varchar>,
         content -> Jsonb,
         is_draft -> Bool,
@@ -170,6 +170,7 @@ joinable!(account_role -> organisation (organisation));
 joinable!(entity -> organisation (organisation));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
+joinable!(maintainer_entity -> entity (entity));
 joinable!(maintenance_event -> maintenance_request (maintenance_request));
 joinable!(maintenance_request -> account (created_by));
 joinable!(maintenance_request -> entity (entity));

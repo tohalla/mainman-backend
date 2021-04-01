@@ -9,7 +9,7 @@ use crate::{db::Pool, entity::Entity, MainmanResponse, MainmanResult};
 #[get("{maintainer_id}")]
 pub async fn get_maintainer(
     pool: Data<Pool>,
-    path: Path<(i32, i32)>,
+    path: Path<(i64, i64)>,
 ) -> MainmanResponse<Maintainer> {
     Ok(Maintainer::get((*path).1, (*path).0, &pool.get()?)?.into())
 }
@@ -17,7 +17,7 @@ pub async fn get_maintainer(
 #[get("")]
 pub async fn get_maintainers(
     pool: Data<Pool>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Vec<Maintainer>> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?
@@ -29,7 +29,7 @@ pub async fn get_maintainers(
 pub async fn create_maintainer(
     pool: Data<Pool>,
     payload: Json<NewMaintainer>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Maintainer> {
     Ok(NewMaintainer {
         organisation: *organisation_id,
@@ -43,7 +43,7 @@ pub async fn create_maintainer(
 pub async fn patch_maintainer(
     pool: Data<Pool>,
     payload: Json<PatchMaintainer>,
-    path: Path<(i32, i32)>,
+    path: Path<(i64, i64)>,
 ) -> MainmanResponse<Maintainer> {
     let conn = &pool.get()?;
     Ok(Maintainer::get((*path).1, (*path).0, conn)?
@@ -54,7 +54,7 @@ pub async fn patch_maintainer(
 #[get("{maintainer_id}/entities")]
 pub async fn entities(
     pool: Data<Pool>,
-    path: Path<(i32, i32)>,
+    path: Path<(i64, i64)>,
 ) -> MainmanResponse<Vec<Entity>> {
     let conn = &pool.get()?;
     Ok(Maintainer::get((*path).1, (*path).0, conn)?
@@ -66,7 +66,7 @@ pub async fn entities(
 pub async fn add_entities(
     pool: Data<Pool>,
     payload: Json<Vec<Uuid>>,
-    path: Path<(i32, i32)>,
+    path: Path<(i64, i64)>,
 ) -> MainmanResponse<Vec<MaintainerEntity>> {
     let conn = &pool.get()?;
     // sepparate fetch for checking access to maintainer
@@ -87,7 +87,7 @@ pub async fn add_entities(
 pub async fn delete_entities(
     pool: Data<Pool>,
     payload: Json<Vec<Uuid>>,
-    path: Path<(i32, i32)>,
+    path: Path<(i64, i64)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
     Maintainer::get((*path).1, (*path).0, conn)?

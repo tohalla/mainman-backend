@@ -32,7 +32,7 @@ pub struct Entity {
     pub updated_at: Option<NaiveDateTime>,
     pub name: String,
     pub description: Option<String>,
-    pub organisation: i32,
+    pub organisation: i64,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
@@ -41,7 +41,7 @@ pub struct NewEntity {
     name: String,
     description: String,
     #[serde(skip_deserializing)]
-    organisation: i32,
+    organisation: i64,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
@@ -54,7 +54,7 @@ pub struct PatchEntity {
 impl Entity {
     pub fn get(
         uuid: Uuid,
-        organisation: i32,
+        organisation: i64,
         conn: &Connection,
     ) -> MainmanResult<Entity> {
         Ok(entity::table
@@ -103,7 +103,7 @@ impl Entity {
 
     pub fn delete_maintainers(
         &self,
-        payload: &Vec<i32>,
+        payload: &Vec<i64>,
         conn: &Connection,
     ) -> MainmanResult<()> {
         diesel::delete(

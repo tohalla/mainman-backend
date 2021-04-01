@@ -18,7 +18,7 @@ use crate::{
 #[get("{uuid}")]
 pub async fn get_entity(
     pool: Data<Pool>,
-    path: Path<(i32, Uuid)>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResponse<Entity> {
     Ok(Entity::get((*path).1, (*path).0, &pool.get()?)?.into())
 }
@@ -26,7 +26,7 @@ pub async fn get_entity(
 #[get("")]
 pub async fn get_entities(
     pool: Data<Pool>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Vec<Entity>> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?
@@ -38,7 +38,7 @@ pub async fn get_entities(
 pub async fn create_entity(
     pool: Data<Pool>,
     payload: Json<NewEntity>,
-    organisation: Path<i32>,
+    organisation: Path<i64>,
 ) -> MainmanResponse<Entity> {
     Ok(NewEntity {
         organisation: *organisation,
@@ -52,7 +52,7 @@ pub async fn create_entity(
 pub async fn patch_entity(
     pool: Data<Pool>,
     payload: Json<PatchEntity>,
-    path: Path<(i32, Uuid)>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResponse<Entity> {
     let conn = &pool.get()?;
     Ok(Entity::get((*path).1, (*path).0, conn)?
@@ -63,8 +63,8 @@ pub async fn patch_entity(
 #[post("{uuid}/maintainers")]
 pub async fn add_maintainers(
     pool: Data<Pool>,
-    payload: Json<Vec<i32>>,
-    path: Path<(i32, Uuid)>,
+    payload: Json<Vec<i64>>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResponse<Vec<MaintainerEntity>> {
     let conn = &pool.get()?;
     // sepparate fetch for checking access to entity
@@ -84,8 +84,8 @@ pub async fn add_maintainers(
 #[delete("{uuid}/maintainers")]
 pub async fn delete_maintainers(
     pool: Data<Pool>,
-    payload: Json<Vec<i32>>,
-    path: Path<(i32, Uuid)>,
+    payload: Json<Vec<i64>>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
     Entity::get((*path).1, (*path).0, conn)?
@@ -96,7 +96,7 @@ pub async fn delete_maintainers(
 #[get("{uuid}/maintainers")]
 pub async fn maintainers(
     pool: Data<Pool>,
-    path: Path<(i32, Uuid)>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResponse<Vec<Maintainer>> {
     let conn = &pool.get()?;
     Ok(Entity::get((*path).1, (*path).0, conn)?
@@ -107,7 +107,7 @@ pub async fn maintainers(
 #[get("{uuid}/maintenance-requests")]
 pub async fn maintenance_requests(
     pool: Data<Pool>,
-    path: Path<(i32, Uuid)>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResponse<Vec<MaintenanceRequest>> {
     let conn = &pool.get()?;
     Ok(Entity::get((*path).1, (*path).0, conn)?
@@ -118,7 +118,7 @@ pub async fn maintenance_requests(
 #[get("{uuid}/maintenance-triggers")]
 pub async fn maintenance_triggers(
     pool: Data<Pool>,
-    path: Path<(i32, Uuid)>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResponse<Vec<MaintenanceTrigger>> {
     let conn = &pool.get()?;
     Ok(Entity::get((*path).1, (*path).0, conn)?
@@ -129,7 +129,7 @@ pub async fn maintenance_triggers(
 #[post("{uuid}/maintenance-triggers")]
 pub async fn create_maintenance_trigger(
     pool: Data<Pool>,
-    path: Path<(i32, Uuid)>,
+    path: Path<(i64, Uuid)>,
 ) -> MainmanResponse<MaintenanceTrigger> {
     let conn = &pool.get()?;
     // sepparate fetch for checking access to entity
@@ -142,7 +142,7 @@ pub async fn create_maintenance_trigger(
 #[delete("{uuid}/maintenance-triggers/{trigger_uuid}")]
 pub async fn delete_maintenance_trigger(
     pool: Data<Pool>,
-    path: Path<(i32, Uuid, Uuid)>,
+    path: Path<(i64, Uuid, Uuid)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
     MaintenanceTrigger::delete((*path).1, (*path).2, conn)?;

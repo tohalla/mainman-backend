@@ -1,6 +1,10 @@
 use account_role::AccountRole;
 use chrono::NaiveDateTime;
-use diesel::{prelude::*, sql_query, sql_types::Integer};
+use diesel::{
+    prelude::*,
+    sql_query,
+    sql_types::{BigInt, Integer},
+};
 use invite::OrganisationInvite;
 
 use crate::{
@@ -34,7 +38,7 @@ pub mod routes;
 )]
 #[table_name = "organisation"]
 pub struct Organisation {
-    pub id: i32,
+    pub id: i64,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
     pub name: String,
@@ -51,9 +55,9 @@ pub struct Organisation {
 #[belongs_to(Organisation, foreign_key = "organisation")]
 #[primary_key(account, organisation)]
 pub struct OrganisationAccount {
-    pub organisation: i32,
-    pub account: i32,
-    pub account_role: Option<i32>,
+    pub organisation: i64,
+    pub account: i64,
+    pub account_role: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
@@ -85,7 +89,7 @@ pub struct OrganisationOverview {
 
 impl Organisation {
     pub fn get(
-        organisation_id: i32,
+        organisation_id: i64,
         conn: &Connection,
     ) -> MainmanResult<Organisation> {
         Ok(organisation::table
@@ -98,14 +102,14 @@ impl Organisation {
         conn: &Connection,
     ) -> MainmanResult<OrganisationOverview> {
         Ok(sql_query(
-            "SELECT maintainers::INTEGER, entities::INTEGER, accounts::INTEGER FROM organisation_overview WHERE id = $1::INTEGER",
+            "SELECT maintainers::INTEGER, entities::INTEGER, accounts::INTEGER FROM organisation_overview WHERE id = $1::bigint",
         )
-        .bind::<Integer, _>(self.id)
+        .bind::<BigInt, _>(self.id)
         .get_result(conn)?)
     }
 
     pub fn all(
-        account_id: i32,
+        account_id: i64,
         conn: &Connection,
     ) -> MainmanResult<Vec<Organisation>> {
         Ok(organisation_account::table
@@ -162,7 +166,7 @@ impl Organisation {
                 schema::account_role::all_columns.nullable(),
             ))
             .load::<(
-                (i32, Option<String>, Option<String>, String),
+                (i64, Option<String>, Option<String>, String),
                 Option<AccountRole>,
             )>(conn)?
             .into_iter()

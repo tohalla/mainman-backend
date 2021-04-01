@@ -19,7 +19,7 @@ use super::OrganisationAccount;
 #[primary_key(uuid)]
 pub struct OrganisationInvite {
     pub uuid: uuid::Uuid,
-    pub organisation: i32,
+    pub organisation: i64,
     pub email: String,
     pub created_at: NaiveDateTime,
 }
@@ -30,12 +30,12 @@ pub struct NewOrganisationInvite {
     #[validate(email(message = "invalid_email"))]
     pub email: String,
     #[serde(skip_deserializing)]
-    pub organisation: i32,
+    pub organisation: i64,
 }
 
 impl OrganisationInvite {
     pub fn get(
-        organisation_id: i32,
+        organisation_id: i64,
         uuid: uuid::Uuid,
         conn: &Connection,
     ) -> MainmanResult<Self> {
@@ -54,7 +54,7 @@ impl OrganisationInvite {
             .select(account::id)
             .find(claim.account_id)
             .filter(account::email.eq(&self.email))
-            .first::<i32>(conn)?;
+            .first::<i64>(conn)?;
         let organisation_account = OrganisationAccount::create(
             &OrganisationAccount {
                 organisation: self.organisation,
@@ -80,7 +80,7 @@ impl Creatable<OrganisationInvite> for NewOrganisationInvite {
             .filter(account::email.eq(&self.email))
             .left_join(organisation_account::table)
             .select((account::id, organisation_account::account.nullable()))
-            .first::<(i32, Option<i32>)>(conn)?;
+            .first::<(i64, Option<i64>)>(conn)?;
 
         if organisation_account.is_some() {
             return Err(crate::error::Error::default()

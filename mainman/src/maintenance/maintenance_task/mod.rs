@@ -12,7 +12,7 @@ pub struct MaintenanceTask {
     pub updated_at: Option<NaiveDateTime>,
     pub accepted_at: Option<NaiveDateTime>,
     pub resolved_at: Option<NaiveDateTime>,
-    pub maintenance_event: i32,
-    pub maintainer: i32,
+    pub maintenance_event: i64,
+    pub maintainer: i64,
     pub is_available: bool,
 }

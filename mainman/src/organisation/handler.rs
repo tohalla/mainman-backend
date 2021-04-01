@@ -45,7 +45,7 @@ pub async fn create_organisation(
 #[get("")]
 pub async fn get_organisation(
     pool: Data<Pool>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<DetailedOrganisation> {
     let conn = &pool.get()?;
     let organisation = Organisation::get(*organisation_id, conn)?;
@@ -60,7 +60,7 @@ pub async fn get_organisation(
 pub async fn patch_organisation<'a>(
     pool: Data<Pool>,
     payload: Json<PatchOrganisation>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Organisation> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?
@@ -74,7 +74,7 @@ pub async fn patch_organisation<'a>(
 #[get("/invites")]
 pub async fn invites(
     pool: Data<Pool>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Vec<OrganisationInvite>> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?

@@ -25,8 +25,8 @@ use crate::{
 
 #[derive(Debug, Deserialize)]
 pub struct PathInfo {
-    pub account_id: Option<i32>,
-    pub organisation_id: Option<i32>,
+    pub account_id: Option<i64>,
+    pub organisation_id: Option<i64>,
 }
 
 impl Default for PathInfo {
@@ -95,7 +95,7 @@ fn check_access(
 
 fn check_organisation_access(
     claim: &Claim,
-    organisation_id: i32,
+    organisation_id: i64,
     conn: &Connection,
 ) -> MainmanResult<()> {
     organisation_account::table

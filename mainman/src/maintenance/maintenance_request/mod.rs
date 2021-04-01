@@ -17,7 +17,7 @@ use crate::{
 pub struct MaintenanceRequest {
     pub id: i64,
     pub created_at: NaiveDateTime,
-    pub created_by: Option<i32>,
+    pub created_by: Option<i64>,
     pub entity: Uuid,
     pub description: Option<String>,
     pub maintenance_trigger: Option<Uuid>,

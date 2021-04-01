@@ -20,11 +20,11 @@ pub mod routes;
 #[table_name = "maintainer"]
 #[belongs_to(Organisation, foreign_key = "organisation")]
 pub struct Maintainer {
-    pub id: i32,
+    pub id: i64,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
-    pub organisation: i32,
-    pub account: Option<i32>,
+    pub organisation: i64,
+    pub account: Option<i64>,
     pub details: Option<serde_json::Value>,
 }
 
@@ -43,34 +43,33 @@ pub struct Maintainer {
 #[belongs_to(Entity, foreign_key = "entity")]
 pub struct MaintainerEntity {
     pub entity: Uuid,
-    pub maintainer: i32,
+    pub maintainer: i64,
     #[serde(skip)]
-    pub organisation: i32,
+    pub organisation: i64,
 }
 
 joinable!(maintainer_entity -> maintainer(maintainer));
-joinable!(maintainer_entity -> entity(entity));
 
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintainer"]
 pub struct NewMaintainer {
-    account: Option<i32>,
+    account: Option<i64>,
     #[serde(skip_deserializing)]
-    organisation: i32,
+    organisation: i64,
     details: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
 #[table_name = "maintainer"]
 pub struct PatchMaintainer {
-    account: Option<i32>,
+    account: Option<i64>,
     details: Option<serde_json::Value>,
 }
 
 impl Maintainer {
     pub fn get(
-        id: i32,
-        organisation: i32,
+        id: i64,
+        organisation: i64,
         conn: &Connection,
     ) -> MainmanResult<Maintainer> {
         Ok(maintainer::table

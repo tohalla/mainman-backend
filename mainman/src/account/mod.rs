@@ -20,7 +20,7 @@ pub mod routes;
 )]
 #[table_name = "account"]
 pub struct Account {
-    pub id: i32,
+    pub id: i64,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
     pub first_name: Option<String>,
@@ -34,7 +34,7 @@ pub struct Account {
 
 #[derive(Debug, Serialize, Queryable)]
 pub struct PublicAccount {
-    pub id: i32,
+    pub id: i64,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub email: String,
@@ -51,7 +51,7 @@ pub struct NewAccount<'a> {
 }
 
 impl Account {
-    pub fn get(id: i32, conn: &Connection) -> MainmanResult<Self> {
+    pub fn get(id: i64, conn: &Connection) -> MainmanResult<Self> {
         Ok(account::dsl::account.find(id).first(conn)?)
     }
 

@@ -43,7 +43,7 @@ pub async fn create_account(
 #[get("")]
 pub async fn account(
     pool: Data<Pool>,
-    account_id: Path<i32>,
+    account_id: Path<i64>,
 ) -> MainmanResponse<Account> {
     Ok(Account::get(*account_id, &pool.get()?)?.into())
 }
@@ -51,7 +51,7 @@ pub async fn account(
 #[get("invites")]
 pub async fn invites(
     pool: Data<Pool>,
-    account_id: Path<i32>,
+    account_id: Path<i64>,
 ) -> MainmanResponse<Vec<OrganisationInvite>> {
     let conn = &pool.get()?;
     Ok(Account::get(*account_id, conn)?.invites(conn)?.into())
@@ -62,7 +62,7 @@ pub async fn invites(
 #[get("")]
 pub async fn organisation_accounts(
     pool: Data<Pool>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Vec<PublicAccount>> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?
@@ -73,7 +73,7 @@ pub async fn organisation_accounts(
 #[get("invites")]
 pub async fn organisation_invites(
     pool: Data<Pool>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Vec<OrganisationInvite>> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?
@@ -85,7 +85,7 @@ pub async fn organisation_invites(
 pub async fn invite_account(
     pool: Data<Pool>,
     payload: Json<NewOrganisationInvite>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<OrganisationInvite> {
     payload.validate()?;
     Ok(NewOrganisationInvite {
@@ -100,7 +100,7 @@ pub async fn invite_account(
 #[post("invites/{uuid}")]
 pub async fn accept_invite(
     pool: Data<Pool>,
-    path: Path<(i32, uuid::Uuid)>,
+    path: Path<(i64, uuid::Uuid)>,
     claim: Claim,
 ) -> MainmanResponse<OrganisationAccount> {
     let conn = &pool.get()?;
@@ -112,7 +112,7 @@ pub async fn accept_invite(
 #[delete("invites/{uuid}")]
 pub async fn delete_invite(
     pool: Data<Pool>,
-    path: Path<(i32, uuid::Uuid)>,
+    path: Path<(i64, uuid::Uuid)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
     OrganisationInvite::get((*path).0, (*path).1, conn)?.delete(conn)?;

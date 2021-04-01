@@ -15,13 +15,13 @@ use crate::{
 #[belongs_to(Organisation, foreign_key = "organisation")]
 #[belongs_to(OrganisationAccount, foreign_key = "id")]
 pub struct AccountRole {
-    pub id: i32,
+    pub id: i64,
     #[serde(skip)]
     pub created_at: NaiveDateTime,
     #[serde(skip)]
     pub updated_at: Option<NaiveDateTime>,
     #[serde(skip)]
-    pub organisation: Option<i32>,
+    pub organisation: Option<i64>,
     pub name: String,
     pub rights: serde_json::Value,
 }

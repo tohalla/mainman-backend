@@ -37,7 +37,7 @@ pub struct AuthCookies<'a> {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claim {
-    pub account_id: i32,
+    pub account_id: i64,
     pub exp: i64,
 }
 
@@ -92,7 +92,7 @@ impl Credentials {
                 sql("lower(email) = ")
                     .bind::<sql_types::Text, _>(self.email.to_lowercase()),
             )
-            .first::<(i32, Vec<u8>)>(conn)
+            .first::<(i64, Vec<u8>)>(conn)
             .map_err(|_| Error::unauthorized())?;
 
         if verify(&self.password, std::str::from_utf8(&result.1)?)? {
@@ -149,7 +149,7 @@ impl<'a> AuthCookies<'a> {
         let token = sql_query(
             "SELECT generate_refresh_token($1::INTEGER, $2::TEXT) token",
         )
-        .bind::<sql_types::Integer, _>(claim.account_id)
+        .bind::<sql_types::BigInt, _>(claim.account_id)
         .bind::<sql_types::Text, _>(&authentication_token)
         .get_result::<RefreshToken>(conn)?
         .0
@@ -183,12 +183,12 @@ impl RefreshToken {
     ) -> MainmanResult<Claim> {
         if let Some(authentication_token) = authentication_token {
             let account_id =
-                sql::<sql_types::Integer>("SELECT validate_refresh_token(")
+                sql::<sql_types::BigInt>("SELECT validate_refresh_token(")
                     .bind::<sql_types::Uuid, _>(self.0)
                     .sql(",")
                     .bind::<sql_types::Text, _>(authentication_token)
                     .sql(")")
-                    .get_result::<i32>(conn)?;
+                    .get_result::<i64>(conn)?;
 
             return Ok(account_id.into());
         }
@@ -215,8 +215,8 @@ impl FromRequest for Claim {
     }
 }
 
-impl From<i32> for Claim {
-    fn from(account_id: i32) -> Self {
+impl From<i64> for Claim {
+    fn from(account_id: i64) -> Self {
         Claim {
             account_id,
             exp: (Utc::now() + Duration::hours(1)).timestamp(),

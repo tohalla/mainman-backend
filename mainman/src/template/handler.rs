@@ -6,7 +6,7 @@ use crate::{db::Pool, MainmanResponse};
 #[get("")]
 pub async fn get_templates(
     pool: Data<Pool>,
-    organisation_id: Path<i32>,
+    organisation_id: Path<i64>,
 ) -> MainmanResponse<Vec<Template>> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?
@@ -17,7 +17,7 @@ pub async fn get_templates(
 #[get("{id}")]
 pub async fn get_template(
     pool: Data<Pool>,
-    path: Path<(i32, i64)>,
+    path: Path<(i64, i64)>,
 ) -> MainmanResponse<Template> {
     Ok(Template::get((*path).1, Some((*path).0), &pool.get()?)?.into())
 }
@@ -26,7 +26,7 @@ pub async fn get_template(
 pub async fn create_template(
     pool: Data<Pool>,
     payload: Json<NewTemplate>,
-    organisation: Path<i32>,
+    organisation: Path<i64>,
 ) -> MainmanResponse<Template> {
     Ok(NewTemplate {
         organisation: *organisation,
@@ -40,7 +40,7 @@ pub async fn create_template(
 pub async fn patch_template(
     pool: Data<Pool>,
     payload: Json<PatchTemplate>,
-    path: Path<(i32, i64)>,
+    path: Path<(i64, i64)>,
 ) -> MainmanResponse<Template> {
     let conn = &pool.get()?;
     Ok(Template::get((*path).1, Some((*path).0), conn)?

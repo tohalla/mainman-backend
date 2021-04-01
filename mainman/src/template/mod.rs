@@ -21,7 +21,7 @@ pub struct Template {
     pub id: i64,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
-    pub organisation: Option<i32>,
+    pub organisation: Option<i64>,
     pub name: Option<String>,
     pub content: serde_json::Value,
     pub is_draft: bool,
@@ -36,7 +36,7 @@ pub struct NewTemplate {
     is_draft: bool,
     template_type: i32,
     #[serde(skip_deserializing)]
-    organisation: i32,
+    organisation: i64,
 }
 
 #[derive(Debug, Deserialize, AsChangeset)]
@@ -51,7 +51,7 @@ pub struct PatchTemplate {
 impl Template {
     pub fn get(
         id: i64,
-        organisation: Option<i32>,
+        organisation: Option<i64>,
         conn: &Connection,
     ) -> MainmanResult<Self> {
         Ok(template::table

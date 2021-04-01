@@ -25,7 +25,7 @@ pub mod routes;
 
 #[derive(Debug)]
 pub struct Message<'a, T: serde::Serialize + std::fmt::Debug> {
-    pub recipient: i32,
+    pub recipient: i64,
     pub event: Option<&'a str>,
     pub data: &'a T,
 }
@@ -34,7 +34,7 @@ pub struct Client(Receiver<Bytes>);
 
 pub struct Broadcaster {
     // TODO: currently only supports one connection per account
-    clients: HashMap<i32, Sender<Bytes>>,
+    clients: HashMap<i64, Sender<Bytes>>,
 }
 
 impl Broadcaster {
@@ -69,13 +69,13 @@ impl Broadcaster {
         });
     }
 
-    pub fn connect(&mut self, account: i32) -> Client {
+    pub fn connect(&mut self, account: i64) -> Client {
         let (tx, rx) = channel(100);
         self.clients.insert(account, tx);
         Client(rx)
     }
 
-    pub fn disconnect(&mut self, account: &i32) {
+    pub fn disconnect(&mut self, account: &i64) {
         self.clients.remove(account);
     }
 
