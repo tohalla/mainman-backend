@@ -17,7 +17,7 @@ services:
     command: nginx -g "daemon off;"
     build:
       context: ./config/nginx
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "80:80"
       - "443:443"
@@ -27,7 +27,6 @@ services:
       - ${PWD}/config/nginx/development/localhost.crt:/etc/ssl/localhost.crt
       - ${PWD}/config/nginx/development/localhost.key:/etc/ssl/localhost.key
       - ${PWD}/config/nginx/development/default.conf:/etc/nginx/conf.d/default.conf
-      - ${PWD}/config/nginx/development/shared_location.conf:/etc/nginx/shared_location.conf
       - ${PWD}/config/certbot/conf:/etc/letsencrypt
 
   certbot:
