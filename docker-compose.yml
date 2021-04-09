@@ -34,7 +34,7 @@ services:
     volumes:
       - ${PWD}/db/scripts:/diesel/scripts:ro
       - ${PWD}/db/migrations:/diesel/migrations:ro
-      - ${PWD}/mainman/src/schema.rs:/migrate/schema.rs
+      - ${PWD}/mainman/src/schema.rs:/diesel/schema.rs
       - ${PWD}/diesel.toml:/diesel/diesel.toml
 
   redis:
