@@ -11,7 +11,7 @@ use crate::{
 
 mod handler;
 pub mod routes;
-mod template_type;
+pub mod template_type;
 
 #[derive(Debug, Associations, Serialize, Queryable, Identifiable)]
 #[belongs_to(Organisation, foreign_key = "organisation")]

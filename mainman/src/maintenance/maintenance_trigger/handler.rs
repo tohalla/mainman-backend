@@ -1,4 +1,5 @@
-use actix_web::web::{Data, Json, Path};
+use actix_http::http::header::CONTENT_TYPE;
+use actix_web::web::{Data, HttpResponse, Json, Path};
 use std::sync::Mutex;
 use uuid::Uuid;
 
@@ -14,7 +15,7 @@ use crate::{
 };
 
 #[get("{uuid}")]
-pub async fn get_trigger(
+pub async fn maintenance_trigger(
     pool: Data<Pool>,
     uuid: Path<Uuid>,
 ) -> MainmanResponse<MaintenanceTrigger> {
@@ -30,11 +31,11 @@ pub async fn create_maintenance_request(
     claim: Claim,
 ) -> MainmanResponse<MaintenanceRequest> {
     let conn = &pool.get()?;
-    let maintenance_trigger = MaintenanceTrigger::get(*uuid, conn)?;
+    let trigger = MaintenanceTrigger::get(*uuid, conn)?;
 
     let maintenance_request = NewMaintenanceRequest {
-        entity: maintenance_trigger.entity,
-        maintenance_trigger: maintenance_trigger.uuid,
+        entity: trigger.entity,
+        maintenance_trigger: trigger.uuid,
         ..payload.into_inner()
     }
     .create(conn)?;
@@ -50,4 +51,21 @@ pub async fn create_maintenance_request(
     }
 
     Ok(maintenance_request.into())
+}
+
+#[get("{uuid}/template")]
+pub async fn template(
+    pool: Data<Pool>,
+    uuid: Path<Uuid>,
+) -> MainmanResult<HttpResponse> {
+    let conn = &pool.get()?;
+    let trigger = DetailedMaintenanceTrigger::get(*uuid, conn)?;
+    let template = trigger.template(conn)?;
+
+    let mut ctx = tera::Context::new();
+    ctx.insert("trigger", &trigger);
+
+    Ok(HttpResponse::Ok()
+        .set_header(CONTENT_TYPE, mime::TEXT_HTML_UTF_8)
+        .body(tera::Tera::one_off(&template.content, &ctx, false)?))
 }

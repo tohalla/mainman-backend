@@ -92,6 +92,7 @@ table! {
         uuid -> Uuid,
         created_at -> Timestamp,
         entity -> Uuid,
+        template -> Nullable<Int8>,
     }
 }
 
@@ -171,6 +172,7 @@ joinable!(entity -> organisation (organisation));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
 joinable!(maintainer_entity -> entity (entity));
+joinable!(maintainer_entity -> maintainer (maintainer));
 joinable!(maintenance_event -> maintenance_request (maintenance_request));
 joinable!(maintenance_request -> account (created_by));
 joinable!(maintenance_request -> entity (entity));
@@ -178,6 +180,7 @@ joinable!(maintenance_request -> maintenance_trigger (maintenance_trigger));
 joinable!(maintenance_task -> maintainer (maintainer));
 joinable!(maintenance_task -> maintenance_event (maintenance_event));
 joinable!(maintenance_trigger -> entity (entity));
+joinable!(maintenance_trigger -> template (template));
 joinable!(organisation -> plan (plan));
 joinable!(organisation_account -> account (account));
 joinable!(organisation_account -> account_role (account_role));

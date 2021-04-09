@@ -48,8 +48,6 @@ pub struct MaintainerEntity {
     pub organisation: i64,
 }
 
-joinable!(maintainer_entity -> maintainer(maintainer));
-
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintainer"]
 pub struct NewMaintainer {

@@ -5,7 +5,8 @@ use uuid::Uuid;
 use crate::{
     db::{Connection, Creatable},
     entity::Entity,
-    schema::maintenance_trigger,
+    schema::{entity, maintenance_trigger, template, template_type},
+    template::{template_type::MAINTENANCE_REQUEST, Template},
     MainmanResult,
 };
 
@@ -28,6 +29,14 @@ pub struct MaintenanceTrigger {
     pub uuid: Uuid,
     pub created_at: NaiveDateTime,
     pub entity: Uuid,
+    pub template: Option<i64>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DetailedMaintenanceTrigger {
+    #[serde(flatten)]
+    pub maintenance_trigger: MaintenanceTrigger,
+    pub entity: Entity,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
@@ -58,6 +67,43 @@ impl MaintenanceTrigger {
         )
         .execute(conn)?;
         Ok(())
+    }
+}
+
+impl DetailedMaintenanceTrigger {
+    pub fn get(
+        uuid: Uuid,
+        conn: &Connection,
+    ) -> MainmanResult<DetailedMaintenanceTrigger> {
+        let (maintenance_trigger, entity) = maintenance_trigger::table
+            .find(uuid)
+            .inner_join(entity::table)
+            .first::<(MaintenanceTrigger, Entity)>(conn)?;
+        Ok(DetailedMaintenanceTrigger {
+            entity,
+            maintenance_trigger,
+        })
+    }
+
+    pub fn template(&self, conn: &Connection) -> MainmanResult<Template> {
+        Ok(match self.maintenance_trigger.template {
+            Some(template_id) => {
+                template::table
+                    .filter(template::id.eq(template_id).and(
+                        template::organisation.eq(self.entity.organisation),
+                    ))
+                    .first::<Template>(conn)
+            }
+            None => template::table
+                .select(template::all_columns)
+                .inner_join(
+                    template_type::table.on(template_type::name
+                        .eq(MAINTENANCE_REQUEST)
+                        .and(template_type::id.eq(template::template_type))),
+                )
+                .filter(template::organisation.is_null())
+                .first::<Template>(conn),
+        }?)
     }
 }
 
