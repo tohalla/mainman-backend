@@ -23,7 +23,7 @@ pub struct Template {
     pub updated_at: Option<NaiveDateTime>,
     pub organisation: Option<i64>,
     pub name: Option<String>,
-    pub content: serde_json::Value,
+    pub content: String,
     pub is_draft: bool,
     pub template_type: i32,
 }
@@ -32,7 +32,7 @@ pub struct Template {
 #[table_name = "template"]
 pub struct NewTemplate {
     name: String,
-    content: serde_json::Value,
+    content: String,
     is_draft: bool,
     template_type: i32,
     #[serde(skip_deserializing)]
@@ -43,7 +43,7 @@ pub struct NewTemplate {
 #[table_name = "template"]
 pub struct PatchTemplate {
     name: Option<String>,
-    content: Option<serde_json::Value>,
+    content: Option<String>,
     is_draft: Option<bool>,
     template_type: Option<i32>,
 }

@@ -9,7 +9,7 @@ CREATE TABLE template (
   updated_at timestamp,
   organisation integer REFERENCES organisation (id) ON DELETE CASCADE,
   name varchar(64),
-  content jsonb NOT NULL,
+  content text NOT NULL,
   is_draft bool NOT NULL DEFAULT False,
   template_type integer NOT NULL REFERENCES template_type (id)
 );

@@ -153,7 +153,7 @@ table! {
         updated_at -> Nullable<Timestamp>,
         organisation -> Nullable<Int8>,
         name -> Nullable<Varchar>,
-        content -> Jsonb,
+        content -> Text,
         is_draft -> Bool,
         template_type -> Int4,
     }
