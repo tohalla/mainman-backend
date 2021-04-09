@@ -2,6 +2,7 @@ use diesel::prelude::*;
 
 use crate::{db::Connection, schema::template_type, MainmanResult};
 
+#[allow(dead_code)]
 pub static MAINTENANCE_REQUEST: &str = "maintenance_request";
 #[allow(dead_code)]
 pub static MAINTENANCE_REPORT: &str = "maintenance_report";

@@ -12,6 +12,8 @@ extern crate serde_json;
 extern crate log;
 #[macro_use]
 extern crate validator;
+#[macro_use]
+extern crate lazy_static;
 
 mod account;
 mod auth;

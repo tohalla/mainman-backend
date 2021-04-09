@@ -11,6 +11,7 @@ use crate::{
     maintenance::maintenance_request::{
         MaintenanceRequest, NewMaintenanceRequest,
     },
+    template::TEMPLATES,
     MainmanResponse,
 };
 
@@ -60,12 +61,16 @@ pub async fn template(
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
     let trigger = DetailedMaintenanceTrigger::get(*uuid, conn)?;
-    let template = trigger.template(conn)?;
 
     let mut ctx = tera::Context::new();
-    ctx.insert("trigger", &trigger);
+    ctx.insert("entity", &trigger.entity);
+
+    let template = match trigger.template(conn)? {
+        Some(template) => tera::Tera::one_off(&template.content, &ctx, false)?,
+        None => TEMPLATES.render("en/maintenance_request.html", &ctx)?,
+    };
 
     Ok(HttpResponse::Ok()
         .set_header(CONTENT_TYPE, mime::TEXT_HTML_UTF_8)
-        .body(tera::Tera::one_off(&template.content, &ctx, false)?))
+        .body(template))
 }

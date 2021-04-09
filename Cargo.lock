@@ -1499,6 +1499,7 @@ dependencies = [
  "futures",
  "heck",
  "jsonwebtoken",
+ "lazy_static",
  "log",
  "mime",
  "r2d2",

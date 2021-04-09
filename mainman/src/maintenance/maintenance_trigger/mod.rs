@@ -5,8 +5,8 @@ use uuid::Uuid;
 use crate::{
     db::{Connection, Creatable},
     entity::Entity,
-    schema::{entity, maintenance_trigger, template, template_type},
-    template::{template_type::MAINTENANCE_REQUEST, Template},
+    schema::{entity, maintenance_trigger, template},
+    template::Template,
     MainmanResult,
 };
 
@@ -85,25 +85,19 @@ impl DetailedMaintenanceTrigger {
         })
     }
 
-    pub fn template(&self, conn: &Connection) -> MainmanResult<Template> {
-        Ok(match self.maintenance_trigger.template {
-            Some(template_id) => {
+    pub fn template(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Option<Template>> {
+        if let Some(template_id) = self.maintenance_trigger.template {
+            return Ok(Some(
                 template::table
-                    .filter(template::id.eq(template_id).and(
-                        template::organisation.eq(self.entity.organisation),
-                    ))
-                    .first::<Template>(conn)
-            }
-            None => template::table
-                .select(template::all_columns)
-                .inner_join(
-                    template_type::table.on(template_type::name
-                        .eq(MAINTENANCE_REQUEST)
-                        .and(template_type::id.eq(template::template_type))),
-                )
-                .filter(template::organisation.is_null())
-                .first::<Template>(conn),
-        }?)
+                    .find(template_id)
+                    .filter(template::organisation.eq(self.entity.organisation))
+                    .first::<Template>(conn)?,
+            ));
+        }
+        Ok(None)
     }
 }
 

@@ -152,7 +152,7 @@ table! {
         id -> Int8,
         created_at -> Timestamp,
         updated_at -> Nullable<Timestamp>,
-        organisation -> Nullable<Int8>,
+        organisation -> Int8,
         name -> Nullable<Varchar>,
         content -> Text,
         is_draft -> Bool,

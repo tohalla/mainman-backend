@@ -8,6 +8,20 @@ use crate::{
     schema::template,
     MainmanResult,
 };
+use tera::Tera;
+
+lazy_static! {
+    pub static ref TEMPLATES: Tera = {
+        let mut tera = match Tera::new("mainman/templates/**/*") {
+            Ok(t) => t,
+            Err(e) => {
+                panic!("Errors when parsing templates: {}", e);
+            }
+        };
+        tera.autoescape_on(vec!["html"]);
+        tera
+    };
+}
 
 mod handler;
 pub mod routes;
@@ -21,7 +35,7 @@ pub struct Template {
     pub id: i64,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
-    pub organisation: Option<i64>,
+    pub organisation: i64,
     pub name: Option<String>,
     pub content: String,
     pub is_draft: bool,
@@ -51,23 +65,13 @@ pub struct PatchTemplate {
 impl Template {
     pub fn get(
         id: i64,
-        organisation: Option<i64>,
+        organisation: i64,
         conn: &Connection,
     ) -> MainmanResult<Self> {
         Ok(template::table
             .find(id)
-            .filter(
-                template::organisation
-                    .eq(organisation)
-                    .or(template::organisation.is_null()),
-            )
+            .filter(template::organisation.eq(organisation))
             .first::<Self>(conn)?)
-    }
-
-    pub fn public(conn: &Connection) -> MainmanResult<Vec<Self>> {
-        Ok(template::table
-            .filter(template::organisation.is_null())
-            .load::<Self>(conn)?)
     }
 
     pub fn patch(

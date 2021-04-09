@@ -7,7 +7,7 @@ CREATE TABLE template (
   id bigserial PRIMARY KEY,
   created_at timestamp NOT NULL DEFAULT NOW(),
   updated_at timestamp,
-  organisation integer REFERENCES organisation (id) ON DELETE CASCADE,
+  organisation integer NOT NULL REFERENCES organisation (id) ON DELETE CASCADE,
   name varchar(64),
   content text NOT NULL,
   is_draft bool NOT NULL DEFAULT False,

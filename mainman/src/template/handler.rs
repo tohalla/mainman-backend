@@ -19,7 +19,7 @@ pub async fn get_template(
     pool: Data<Pool>,
     path: Path<(i64, i64)>,
 ) -> MainmanResponse<Template> {
-    Ok(Template::get((*path).1, Some((*path).0), &pool.get()?)?.into())
+    Ok(Template::get((*path).1, (*path).0, &pool.get()?)?.into())
 }
 
 #[post("")]
@@ -43,7 +43,7 @@ pub async fn patch_template(
     path: Path<(i64, i64)>,
 ) -> MainmanResponse<Template> {
     let conn = &pool.get()?;
-    Ok(Template::get((*path).1, Some((*path).0), conn)?
+    Ok(Template::get((*path).1, (*path).0, conn)?
         .patch(&payload, conn)?
         .into())
 }
