@@ -29,7 +29,7 @@ pub struct ErrorResponse {
 impl ResponseError for ErrorResponse {
     fn error_response(&self) -> HttpResponse {
         ResponseBuilder::new(self.status_code())
-            .set_header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .set_header(header::CONTENT_TYPE, mime::APPLICATION_JSON)
             .body(json!(self))
     }
 
