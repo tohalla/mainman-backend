@@ -26,6 +26,7 @@ mod error;
 mod events;
 mod health;
 mod initialize;
+mod mail;
 mod maintainer;
 mod maintenance;
 mod organisation;

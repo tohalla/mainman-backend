@@ -30,14 +30,30 @@ pub async fn create_account(
     payload: Json<NewAccountPayload>,
 ) -> MainmanResponse<Account> {
     payload.validate()?;
-    Ok(NewAccount {
+
+    let res = NewAccount {
         email: &payload.email,
         first_name: &payload.first_name.to_title_case(),
         last_name: &payload.last_name.to_title_case(),
         password: hash(&payload.password, DEFAULT_COST)?.as_bytes(),
     }
-    .create(&pool.get()?)?
-    .into())
+    .create(&pool.get()?)?;
+
+    if let Ok(email) = res.email.parse::<lettre::message::Mailbox>() {
+        let mut ctx = tera::Context::new();
+        ctx.insert("account", &res);
+        crate::mail::send(
+            &lettre::Message::builder()
+                .from(crate::mail::support())
+                .to(email)
+                .subject("Welcome to Mainman")
+                .multipart(crate::mail::from_template("welcome", &ctx))
+                .unwrap(),
+        )
+        .unwrap();
+    }
+
+    Ok(res.into())
 }
 
 #[get("")]

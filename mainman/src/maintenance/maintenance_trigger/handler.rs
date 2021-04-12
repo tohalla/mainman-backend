@@ -67,7 +67,7 @@ pub async fn template(
 
     let template = match trigger.template(conn)? {
         Some(template) => tera::Tera::one_off(&template.content, &ctx, false)?,
-        None => TEMPLATES.render("en/maintenance_request.html", &ctx)?,
+        None => TEMPLATES.render("base/en/maintenance_request.html", &ctx)?,
     };
 
     Ok(HttpResponse::Ok()
