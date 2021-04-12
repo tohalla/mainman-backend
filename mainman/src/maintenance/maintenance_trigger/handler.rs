@@ -44,7 +44,7 @@ pub async fn create_maintenance_request(
     if let Ok(mut broker) = broker.lock() {
         broker
             .send(Message {
-                event: Some("maintenanceRequest"),
+                event: Some("maintenance_request"),
                 data: &maintenance_request,
                 recipient: claim.account_id,
             })
