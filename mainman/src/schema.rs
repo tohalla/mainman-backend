@@ -60,6 +60,7 @@ table! {
         resolved_at -> Nullable<Timestamp>,
         description -> Nullable<Text>,
         maintenance_request -> Nullable<Int8>,
+        entity -> Uuid,
     }
 }
 
@@ -173,6 +174,7 @@ joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
 joinable!(maintainer_entity -> entity (entity));
 joinable!(maintainer_entity -> maintainer (maintainer));
+joinable!(maintenance_event -> entity (entity));
 joinable!(maintenance_event -> maintenance_request (maintenance_request));
 joinable!(maintenance_request -> account (created_by));
 joinable!(maintenance_request -> entity (entity));

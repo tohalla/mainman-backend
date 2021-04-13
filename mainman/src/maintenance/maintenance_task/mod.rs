@@ -16,3 +16,11 @@ pub struct MaintenanceTask {
     pub maintainer: i64,
     pub is_available: bool,
 }
+
+#[derive(Debug, Deserialize, Insertable)]
+#[table_name = "maintenance_task"]
+pub struct NewMaintenanceTask {
+    pub maintenance_event: i64,
+    pub maintainer: i64,
+    pub is_available: bool,
+}
