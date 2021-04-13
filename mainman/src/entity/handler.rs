@@ -8,10 +8,6 @@ use super::*;
 use crate::{
     db::Pool,
     maintainer::{Maintainer, MaintainerEntity},
-    maintenance::{
-        maintenance_request::MaintenanceRequest,
-        maintenance_trigger::{MaintenanceTrigger, NewMaintenanceTrigger},
-    },
     MainmanResponse, MainmanResult,
 };
 
@@ -102,49 +98,4 @@ pub async fn maintainers(
     Ok(Entity::get((*path).1, (*path).0, conn)?
         .maintainers(conn)?
         .into())
-}
-
-#[get("{uuid}/maintenance-requests")]
-pub async fn maintenance_requests(
-    pool: Data<Pool>,
-    path: Path<(i64, Uuid)>,
-) -> MainmanResponse<Vec<MaintenanceRequest>> {
-    let conn = &pool.get()?;
-    Ok(Entity::get((*path).1, (*path).0, conn)?
-        .maintenance_requests(conn)?
-        .into())
-}
-
-#[get("{uuid}/maintenance-triggers")]
-pub async fn maintenance_triggers(
-    pool: Data<Pool>,
-    path: Path<(i64, Uuid)>,
-) -> MainmanResponse<Vec<MaintenanceTrigger>> {
-    let conn = &pool.get()?;
-    Ok(Entity::get((*path).1, (*path).0, conn)?
-        .maintenance_triggers(conn)?
-        .into())
-}
-
-#[post("{uuid}/maintenance-triggers")]
-pub async fn create_maintenance_trigger(
-    pool: Data<Pool>,
-    path: Path<(i64, Uuid)>,
-) -> MainmanResponse<MaintenanceTrigger> {
-    let conn = &pool.get()?;
-    // sepparate fetch for checking access to entity
-    Entity::get((*path).1, (*path).0, conn)?;
-    Ok(NewMaintenanceTrigger { entity: (*path).1 }
-        .create(conn)?
-        .into())
-}
-
-#[delete("{uuid}/maintenance-triggers/{trigger_uuid}")]
-pub async fn delete_maintenance_trigger(
-    pool: Data<Pool>,
-    path: Path<(i64, Uuid, Uuid)>,
-) -> MainmanResult<HttpResponse> {
-    let conn = &pool.get()?;
-    MaintenanceTrigger::delete((*path).1, (*path).2, conn)?;
-    Ok(HttpResponse::Accepted().finish())
 }

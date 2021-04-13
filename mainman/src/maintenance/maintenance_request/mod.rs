@@ -9,6 +9,9 @@ use crate::{
     MainmanResult,
 };
 
+mod handler;
+pub mod routes;
+
 #[derive(
     Debug, Serialize, Deserialize, Queryable, Identifiable, Associations,
 )]

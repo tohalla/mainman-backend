@@ -74,3 +74,39 @@ pub async fn template(
         .set_header(CONTENT_TYPE, mime::TEXT_HTML_UTF_8)
         .body(template))
 }
+
+// entity routes -- /organisation/{organisation}/entities/{entity}/maintenance/triggers/
+
+#[get("")]
+pub async fn maintenance_triggers(
+    pool: Data<Pool>,
+    path: Path<(i64, Uuid)>,
+) -> MainmanResponse<Vec<MaintenanceTrigger>> {
+    let conn = &pool.get()?;
+    Ok(Entity::get((*path).1, (*path).0, conn)?
+        .maintenance_triggers(conn)?
+        .into())
+}
+
+#[post("")]
+pub async fn create_maintenance_trigger(
+    pool: Data<Pool>,
+    path: Path<(i64, Uuid)>,
+) -> MainmanResponse<MaintenanceTrigger> {
+    let conn = &pool.get()?;
+    // sepparate fetch for checking access to entity
+    Entity::get((*path).1, (*path).0, conn)?;
+    Ok(NewMaintenanceTrigger { entity: (*path).1 }
+        .create(conn)?
+        .into())
+}
+
+#[delete("{uuid}")]
+pub async fn delete_maintenance_trigger(
+    pool: Data<Pool>,
+    path: Path<(i64, Uuid, Uuid)>,
+) -> MainmanResult<HttpResponse> {
+    let conn = &pool.get()?;
+    MaintenanceTrigger::delete((*path).1, (*path).2, conn)?;
+    Ok(HttpResponse::Accepted().finish())
+}

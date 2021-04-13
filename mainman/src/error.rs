@@ -220,6 +220,18 @@ impl From<tera::Error> for ErrorResponse {
         })
     }
 }
+
+impl From<serde::de::value::Error> for ErrorResponse {
+    fn from(error: serde::de::value::Error) -> ErrorResponse {
+        ErrorResponse::from(Error {
+            source: None,
+            status: StatusCode::BAD_REQUEST.as_u16(),
+            title: Some("Serialization error".to_owned()),
+            detail: Some(error.to_string()),
+        })
+    }
+}
+
 impl From<ValidationErrors> for ErrorResponse {
     fn from(validation_errors: ValidationErrors) -> ErrorResponse {
         let mut errors = Vec::<Error>::new();

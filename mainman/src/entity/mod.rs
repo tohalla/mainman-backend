@@ -1,9 +1,12 @@
+use actix_http::Payload;
+use actix_web::{web::Data, FromRequest, HttpRequest};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use futures::future::{err, ok, Ready};
 use uuid::Uuid;
 
 use crate::{
-    db::{Connection, Creatable},
+    db::{Connection, Creatable, Pool},
     maintainer::{Maintainer, MaintainerEntity},
     maintenance::{
         maintenance_request::MaintenanceRequest,
@@ -123,5 +126,25 @@ impl Creatable<Entity> for NewEntity {
         Ok(diesel::insert_into(entity::table)
             .values(self)
             .get_result::<Entity>(conn)?)
+    }
+}
+
+impl FromRequest for Entity {
+    type Error = crate::error::ErrorResponse;
+    type Future = Ready<Result<Self, Self::Error>>;
+    type Config = ();
+
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let conn = &req.app_data::<Data<Pool>>().unwrap().get().unwrap();
+
+        match req.match_info().load::<(i64, uuid::Uuid)>() {
+            Ok((organisation_id, entity)) => {
+                match Entity::get(entity, organisation_id, conn) {
+                    Ok(entity) => ok(entity),
+                    Err(e) => err(e.into()),
+                }
+            }
+            Err(e) => err(e.into()),
+        }
     }
 }
