@@ -9,16 +9,23 @@ use crate::{
     MainmanResponse,
 };
 
-#[post("{id}")]
+// entity routes -- /organisation/{organisation}/entities/{entity}/maintenance/events/
+
+#[post("")]
 pub async fn create_maintenance_event(
     broker: Data<Mutex<Broadcaster>>,
     claim: Claim,
     payload: Json<NewMaintenanceEvent>,
     pool: Data<Pool>,
+    entity: Entity,
 ) -> MainmanResponse<MaintenanceEvent> {
     let conn = &pool.get()?;
 
-    let maintenance_event = payload.create(conn)?;
+    let maintenance_event = NewMaintenanceEvent {
+        entity: entity.uuid,
+        ..payload.into_inner()
+    }
+    .create(conn)?;
 
     if let Ok(mut broker) = broker.lock() {
         broker

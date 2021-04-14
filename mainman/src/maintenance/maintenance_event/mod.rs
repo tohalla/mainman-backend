@@ -32,7 +32,6 @@ pub struct MaintenanceEvent {
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "maintenance_event"]
 pub struct NewMaintenanceEvent {
-    #[serde(skip)]
     pub maintenance_request: Option<i64>,
     pub description: Option<String>,
     #[serde(skip)]
