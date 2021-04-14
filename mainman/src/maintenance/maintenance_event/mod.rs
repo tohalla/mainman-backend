@@ -12,6 +12,7 @@ use crate::{
 use super::maintenance_task::NewMaintenanceTask;
 
 mod handler;
+pub mod routes;
 
 #[derive(
     Debug, Serialize, Deserialize, Queryable, Identifiable, Associations,
