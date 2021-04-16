@@ -35,6 +35,7 @@ mod routes;
 mod schema;
 mod server;
 mod template;
+mod views;
 
 pub type MainmanResult<T> = Result<T, error::ErrorResponse>;
 pub type MainmanResponse<T> = MainmanResult<response::Response<T>>;

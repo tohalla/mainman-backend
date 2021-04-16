@@ -11,13 +11,14 @@ use crate::{
     account::Account,
     account::PublicAccount,
     db::{Connection, Creatable},
-    entity::Entity,
+    entity::{Entity, EntityOverview, EntityWithOverview},
     maintainer::Maintainer,
     schema::{
         self, account, entity, maintainer, organisation, organisation_account,
         organisation_invite, template,
     },
     template::Template,
+    views::entity_overview,
     MainmanResult,
 };
 
@@ -128,10 +129,17 @@ impl Organisation {
             .load::<Maintainer>(conn)?)
     }
 
-    pub fn entities(&self, conn: &Connection) -> MainmanResult<Vec<Entity>> {
+    pub fn entities(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<EntityWithOverview>> {
         Ok(Entity::belonging_to(self)
-            .select(entity::all_columns)
-            .load::<Entity>(conn)?)
+            .inner_join(entity_overview::table)
+            .select((entity::all_columns, entity_overview::all_columns))
+            .load::<(Entity, EntityOverview)>(conn)?
+            .into_iter()
+            .map(|(entity, overview)| EntityWithOverview { entity, overview })
+            .collect())
     }
 
     pub fn templates(&self, conn: &Connection) -> MainmanResult<Vec<Template>> {

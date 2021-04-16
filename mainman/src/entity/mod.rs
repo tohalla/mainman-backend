@@ -17,6 +17,7 @@ use crate::{
         entity, maintainer, maintainer_entity, maintenance_request,
         maintenance_trigger,
     },
+    views::entity_overview,
     MainmanResult,
 };
 
@@ -36,6 +37,27 @@ pub struct Entity {
     pub name: String,
     pub description: Option<String>,
     pub organisation: i64,
+}
+
+#[derive(Debug, Serialize, Associations, Queryable)]
+#[table_name = "entity_overview"]
+#[belongs_to(Entity, foreign_key = "uuid")]
+pub struct EntityOverview {
+    #[serde(skip)]
+    uuid: uuid::Uuid,
+    #[serde(skip)]
+    organisaiton: i64,
+    pub pending_requests: i64,
+    pub unfinished_requests: i64,
+    pub finished_requests: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EntityWithOverview {
+    #[serde(flatten)]
+    pub entity: Entity,
+    #[serde(flatten)]
+    pub overview: EntityOverview,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
@@ -64,6 +86,22 @@ impl Entity {
             .find(uuid)
             .filter(entity::organisation.eq(organisation))
             .first::<Entity>(conn)?)
+    }
+
+    pub fn get_with_overview(
+        uuid: Uuid,
+        organisation: i64,
+        conn: &Connection,
+    ) -> MainmanResult<EntityWithOverview> {
+        Ok(entity::table
+            .find(uuid)
+            .filter(entity::organisation.eq(organisation))
+            .inner_join(entity_overview::table)
+            .first::<(Entity, EntityOverview)>(conn)
+            .map(|(entity, overview)| EntityWithOverview {
+                entity,
+                overview,
+            })?)
     }
 
     pub fn maintainers(

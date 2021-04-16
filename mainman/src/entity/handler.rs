@@ -15,15 +15,15 @@ use crate::{
 pub async fn get_entity(
     pool: Data<Pool>,
     path: Path<(i64, Uuid)>,
-) -> MainmanResponse<Entity> {
-    Ok(Entity::get((*path).1, (*path).0, &pool.get()?)?.into())
+) -> MainmanResponse<EntityWithOverview> {
+    Ok(Entity::get_with_overview((*path).1, (*path).0, &pool.get()?)?.into())
 }
 
 #[get("")]
 pub async fn get_entities(
     pool: Data<Pool>,
     organisation_id: Path<i64>,
-) -> MainmanResponse<Vec<Entity>> {
+) -> MainmanResponse<Vec<EntityWithOverview>> {
     let conn = &pool.get()?;
     Ok(Organisation::get(*organisation_id, conn)?
         .entities(conn)?
