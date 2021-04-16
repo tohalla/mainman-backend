@@ -48,8 +48,8 @@ pub struct EntityOverview {
     #[serde(skip)]
     organisaiton: i64,
     pub pending_requests: i64,
-    pub unfinished_requests: i64,
-    pub finished_requests: i64,
+    pub unfinished_events: i64,
+    pub finished_events: i64,
 }
 
 #[derive(Debug, Serialize)]

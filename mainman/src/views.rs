@@ -5,8 +5,8 @@ table! {
         uuid -> Uuid,
         organisation -> Int8,
         pending_requests -> Int8,
-        unfinished_requests -> Int8,
-        finished_requests -> Int8,
+        unfinished_events -> Int8,
+        finished_events -> Int8,
     }
 }
 
