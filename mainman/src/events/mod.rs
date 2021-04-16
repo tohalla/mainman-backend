@@ -1,3 +1,13 @@
+use actix::clock::{interval_at, Instant};
+use actix_web::{
+    rt,
+    web::{Bytes, Data},
+    Error,
+};
+use futures::{
+    channel::mpsc::{channel, Receiver, Sender},
+    SinkExt, Stream, StreamExt,
+};
 use std::{
     collections::HashMap,
     pin::Pin,
@@ -6,26 +16,19 @@ use std::{
     time::Duration,
 };
 
-use actix::clock::{interval_at, Instant};
-use actix_web::{
-    rt,
-    web::{Bytes, Data},
-    Error,
-};
-
-use futures::{
-    channel::mpsc::{channel, Receiver, Sender},
-    SinkExt, Stream, StreamExt,
-};
-
 use crate::MainmanResult;
 
 mod handler;
 pub mod routes;
 
 #[derive(Debug)]
+struct MessageWithRecipient<'a, T: serde::Serialize + std::fmt::Debug> {
+    pub recipient: &'a i64,
+    pub message: &'a Message<'a, T>,
+}
+
+#[derive(Debug)]
 pub struct Message<'a, T: serde::Serialize + std::fmt::Debug> {
-    pub recipient: i64,
     pub event: Option<&'a str>,
     pub data: &'a T,
 }
@@ -79,14 +82,16 @@ impl Broadcaster {
         self.clients.remove(account);
     }
 
-    #[allow(dead_code)]
     pub async fn send<'a, T: serde::Serialize + std::fmt::Debug>(
         &mut self,
-        msg: Message<'a, T>,
+        message: &Message<'a, T>,
+        recipients: &[i64],
     ) -> MainmanResult<()> {
-        if let Some(client) = self.clients.get_mut(&msg.recipient) {
-            let bytes: Bytes = msg.into();
-            return Ok(client.send(bytes).await?);
+        for recipient in recipients {
+            if let Some(client) = self.clients.get_mut(recipient) {
+                let bytes: Bytes = message.into();
+                return Ok(client.send(bytes).await?);
+            }
         }
         Ok(())
     }
@@ -107,7 +112,9 @@ impl Stream for Client {
     }
 }
 
-impl<'a, T: serde::Serialize + std::fmt::Debug> Into<Bytes> for Message<'a, T> {
+impl<'a, T: serde::Serialize + std::fmt::Debug> Into<Bytes>
+    for &Message<'a, T>
+{
     fn into(self) -> Bytes {
         let mut payload = self
             .event

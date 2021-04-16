@@ -3,9 +3,9 @@ use std::sync::Mutex;
 
 use super::*;
 use crate::{
-    auth::Claim,
     db::Pool,
     events::{Broadcaster, Message},
+    organisation::Organisation,
     MainmanResponse,
 };
 
@@ -14,7 +14,6 @@ use crate::{
 #[post("")]
 pub async fn create_maintenance_event(
     broker: Data<Mutex<Broadcaster>>,
-    claim: Claim,
     payload: Json<NewMaintenanceEvent>,
     pool: Data<Pool>,
     entity: Entity,
@@ -29,11 +28,14 @@ pub async fn create_maintenance_event(
 
     if let Ok(mut broker) = broker.lock() {
         broker
-            .send(Message {
-                event: Some("maintenance_event"),
-                data: &maintenance_event,
-                recipient: claim.account_id,
-            })
+            .send(
+                &Message {
+                    event: Some("maintenance_event"),
+                    data: &maintenance_event,
+                },
+                &Organisation::get(entity.organisation, conn)?
+                    .subscribers(conn)?,
+            )
             .await?;
     }
 

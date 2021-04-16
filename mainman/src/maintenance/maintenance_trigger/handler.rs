@@ -5,7 +5,6 @@ use uuid::Uuid;
 
 use super::*;
 use crate::{
-    auth::Claim,
     db::Pool,
     events::{Broadcaster, Message},
     maintenance::maintenance_request::{
@@ -29,7 +28,6 @@ pub async fn create_maintenance_request(
     pool: Data<Pool>,
     payload: Json<NewMaintenanceRequest>,
     uuid: Path<Uuid>,
-    claim: Claim,
 ) -> MainmanResponse<MaintenanceRequest> {
     let conn = &pool.get()?;
     let trigger = MaintenanceTrigger::get(*uuid, conn)?;
@@ -43,11 +41,13 @@ pub async fn create_maintenance_request(
 
     if let Ok(mut broker) = broker.lock() {
         broker
-            .send(Message {
-                event: Some("maintenance_request"),
-                data: &maintenance_request,
-                recipient: claim.account_id,
-            })
+            .send(
+                &Message {
+                    event: Some("maintenance_request"),
+                    data: &maintenance_request,
+                },
+                &trigger.organisation(conn)?.subscribers(conn)?,
+            )
             .await?;
     }
 

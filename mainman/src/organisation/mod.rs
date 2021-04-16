@@ -189,6 +189,13 @@ impl Organisation {
             .set(payload)
             .get_result::<Organisation>(conn)?)
     }
+
+    pub fn subscribers(&self, conn: &Connection) -> MainmanResult<Vec<i64>> {
+        Ok(OrganisationAccount::belonging_to(self)
+            .inner_join(account::table)
+            .select(account::id)
+            .load::<i64>(conn)?)
+    }
 }
 
 impl Creatable<OrganisationAccount> for OrganisationAccount {

@@ -5,7 +5,8 @@ use uuid::Uuid;
 use crate::{
     db::{Connection, Creatable},
     entity::Entity,
-    schema::{entity, maintenance_trigger, template},
+    organisation::Organisation,
+    schema::{entity, maintenance_trigger, organisation, template},
     template::Template,
     MainmanResult,
 };
@@ -67,6 +68,17 @@ impl MaintenanceTrigger {
         )
         .execute(conn)?;
         Ok(())
+    }
+
+    pub fn organisation(
+        &self,
+        conn: &Connection,
+    ) -> MainmanResult<Organisation> {
+        Ok(entity::table
+            .find(self.entity)
+            .inner_join(organisation::table)
+            .select(organisation::all_columns)
+            .first::<Organisation>(conn)?)
     }
 }
 
