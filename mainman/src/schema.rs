@@ -72,6 +72,7 @@ table! {
         entity -> Uuid,
         description -> Nullable<Text>,
         maintenance_trigger -> Nullable<Uuid>,
+        processed_at -> Nullable<Timestamp>,
     }
 }
 

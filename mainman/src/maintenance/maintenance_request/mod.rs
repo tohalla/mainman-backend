@@ -24,6 +24,7 @@ pub struct MaintenanceRequest {
     pub entity: Uuid,
     pub description: Option<String>,
     pub maintenance_trigger: Option<Uuid>,
+    pub processed_at: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Deserialize, Insertable)]
