@@ -13,10 +13,7 @@ use crate::{
         maintenance_trigger::MaintenanceTrigger,
     },
     organisation::Organisation,
-    schema::{
-        entity, maintainer, maintainer_entity, maintenance_request,
-        maintenance_trigger,
-    },
+    schema::{entity, maintainer, maintainer_entity, maintenance_request, maintenance_trigger},
     views::entity_overview,
     MainmanResult,
 };
@@ -24,9 +21,7 @@ use crate::{
 mod handler;
 pub mod routes;
 
-#[derive(
-    Debug, Associations, Serialize, Deserialize, Queryable, Identifiable,
-)]
+#[derive(Debug, Associations, Serialize, Deserialize, Queryable, Identifiable)]
 #[belongs_to(Organisation, foreign_key = "organisation")]
 #[table_name = "entity"]
 #[primary_key(uuid)]
@@ -77,11 +72,7 @@ pub struct PatchEntity {
 }
 
 impl Entity {
-    pub fn get(
-        uuid: Uuid,
-        organisation: i64,
-        conn: &Connection,
-    ) -> MainmanResult<Entity> {
+    pub fn get(uuid: Uuid, organisation: i64, conn: &Connection) -> MainmanResult<Entity> {
         Ok(entity::table
             .find(uuid)
             .filter(entity::organisation.eq(organisation))
@@ -98,27 +89,17 @@ impl Entity {
             .filter(entity::organisation.eq(organisation))
             .inner_join(entity_overview::table)
             .first::<(Entity, EntityOverview)>(conn)
-            .map(|(entity, overview)| EntityWithOverview {
-                entity,
-                overview,
-            })?)
+            .map(|(entity, overview)| EntityWithOverview { entity, overview })?)
     }
 
-    pub fn maintainers(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<Maintainer>> {
+    pub fn maintainers(&self, conn: &Connection) -> MainmanResult<Vec<Maintainer>> {
         Ok(MaintainerEntity::belonging_to(self)
             .inner_join(maintainer::table)
             .select(maintainer::all_columns)
             .load::<Maintainer>(conn)?)
     }
 
-    pub fn patch(
-        &self,
-        payload: &PatchEntity,
-        conn: &Connection,
-    ) -> MainmanResult<Entity> {
+    pub fn patch(&self, payload: &PatchEntity, conn: &Connection) -> MainmanResult<Entity> {
         Ok(diesel::update(self)
             .set(payload)
             .get_result::<Entity>(conn)?)
@@ -134,9 +115,7 @@ impl Entity {
             .into_boxed();
         if let Some(filter) = filter.processed {
             q = match filter {
-                true => {
-                    q.filter(maintenance_request::processed_at.is_not_null())
-                }
+                true => q.filter(maintenance_request::processed_at.is_not_null()),
                 false => q.filter(maintenance_request::processed_at.is_null()),
             };
         }
@@ -152,11 +131,7 @@ impl Entity {
             .load::<MaintenanceTrigger>(conn)?)
     }
 
-    pub fn delete_maintainers(
-        &self,
-        payload: &Vec<i64>,
-        conn: &Connection,
-    ) -> MainmanResult<()> {
+    pub fn delete_maintainers(&self, payload: &Vec<i64>, conn: &Connection) -> MainmanResult<()> {
         diesel::delete(
             maintainer_entity::table.filter(
                 maintainer_entity::entity
@@ -186,12 +161,10 @@ impl FromRequest for Entity {
         let conn = &req.app_data::<Data<Pool>>().unwrap().get().unwrap();
 
         match req.match_info().load::<(i64, uuid::Uuid)>() {
-            Ok((organisation_id, entity)) => {
-                match Entity::get(entity, organisation_id, conn) {
-                    Ok(entity) => ok(entity),
-                    Err(e) => err(e.into()),
-                }
-            }
+            Ok((organisation_id, entity)) => match Entity::get(entity, organisation_id, conn) {
+                Ok(entity) => ok(entity),
+                Err(e) => err(e.into()),
+            },
             Err(e) => err(e.into()),
         }
     }

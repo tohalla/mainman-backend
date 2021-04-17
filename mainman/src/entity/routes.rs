@@ -10,8 +10,5 @@ pub fn organisation_routes(cfg: &mut web::ServiceConfig) {
         .service(super::handler::maintainers)
         .service(super::handler::delete_maintainers)
         .service(super::handler::add_maintainers)
-        .service(
-            web::scope("/{uuid}/maintenance")
-                .configure(maintenance::routes::entity_routes),
-        );
+        .service(web::scope("/{uuid}/maintenance").configure(maintenance::routes::entity_routes));
 }

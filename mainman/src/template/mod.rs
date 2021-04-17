@@ -63,22 +63,14 @@ pub struct PatchTemplate {
 }
 
 impl Template {
-    pub fn get(
-        id: i64,
-        organisation: i64,
-        conn: &Connection,
-    ) -> MainmanResult<Self> {
+    pub fn get(id: i64, organisation: i64, conn: &Connection) -> MainmanResult<Self> {
         Ok(template::table
             .find(id)
             .filter(template::organisation.eq(organisation))
             .first::<Self>(conn)?)
     }
 
-    pub fn patch(
-        &self,
-        payload: &PatchTemplate,
-        conn: &Connection,
-    ) -> MainmanResult<Self> {
+    pub fn patch(&self, payload: &PatchTemplate, conn: &Connection) -> MainmanResult<Self> {
         Ok(diesel::update(self).set(payload).get_result::<Self>(conn)?)
     }
 }

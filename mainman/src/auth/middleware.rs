@@ -53,11 +53,7 @@ impl<'a> Default for RequireAuthentication<'a> {
 
 impl<'a, S: 'static, B> Transform<S> for RequireAuthentication<'a>
 where
-    S: Service<
-        Request = ServiceRequest,
-        Response = ServiceResponse<B>,
-        Error = actix_web::Error,
-    >,
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
     S::Future: 'static,
     B: 'static,
 {
@@ -82,11 +78,7 @@ pub struct RequireAuthenticationMiddleware<'a, S> {
     require_permissions: Option<&'a [&'a str]>,
 }
 
-fn check_access(
-    claim: &Claim,
-    path_info: &PathInfo,
-    conn: &Connection,
-) -> MainmanResult<()> {
+fn check_access(claim: &Claim, path_info: &PathInfo, conn: &Connection) -> MainmanResult<()> {
     check_account(&claim, &path_info)?;
     if let Some(organisation_id) = path_info.organisation_id {
         check_organisation_access(claim, organisation_id, conn)?;
@@ -121,24 +113,17 @@ fn check_account(claim: &Claim, path_info: &PathInfo) -> MainmanResult<()> {
 
 impl<'a, S, B> Service for RequireAuthenticationMiddleware<'a, S>
 where
-    S: Service<
-            Request = ServiceRequest,
-            Response = ServiceResponse<B>,
-            Error = actix_web::Error,
-        > + 'static,
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>
+        + 'static,
     S::Future: 'static,
     B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = actix_web::Error;
-    type Future =
-        Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
-    fn poll_ready(
-        &mut self,
-        ctx: &mut Context<'_>,
-    ) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&mut self, ctx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(ctx)
     }
 
@@ -154,32 +139,26 @@ where
             .cookie("authorization")
             .map(|cookie| cookie.value().to_string());
 
-        if let Ok(claim) = Claim::from_identity(
-            authentication_token.to_owned(),
-            &Validation::default(),
-        ) {
+        if let Ok(claim) =
+            Claim::from_identity(authentication_token.to_owned(), &Validation::default())
+        {
             if check_access(&claim, &path_info, conn).is_ok() {
                 return Box::pin(async move { Ok(service.call(req).await?) });
             }
         }
         if let Some(refresh_token) = req.cookie("refresh-token") {
             if let Ok(refresh_token) = Uuid::parse_str(refresh_token.value()) {
-                if let Ok(claim) = super::RefreshToken(refresh_token)
-                    .validate_refresh_token(
-                        authentication_token.and_then(|auth_token| {
-                            AuthCookies::parse_auth_token(&auth_token)
-                        }),
-                        conn,
-                    )
-                {
+                if let Ok(claim) = super::RefreshToken(refresh_token).validate_refresh_token(
+                    authentication_token
+                        .and_then(|auth_token| AuthCookies::parse_auth_token(&auth_token)),
+                    conn,
+                ) {
                     if check_access(&claim, &path_info, conn).is_ok() {
-                        if let Ok(cookies) = AuthCookies::cookies(&claim, conn)
-                        {
+                        if let Ok(cookies) = AuthCookies::cookies(&claim, conn) {
                             return Box::pin(async move {
                                 let mut res = service.call(req).await?;
                                 res.response_mut().add_cookie(&cookies.auth)?;
-                                res.response_mut()
-                                    .add_cookie(&cookies.refresh)?;
+                                res.response_mut().add_cookie(&cookies.refresh)?;
                                 Ok(res)
                             });
                         }
@@ -189,9 +168,7 @@ where
         }
         Box::pin(ok(req.into_response(
             HttpResponse::Unauthorized()
-                .body(json!(
-                    ErrorResponse::new().add_error(Error::unauthorized())
-                ))
+                .body(json!(ErrorResponse::new().add_error(Error::unauthorized())))
                 .into_body(),
         )))
     }

@@ -33,8 +33,7 @@ pub async fn create_maintenance_event(
                     event: Some("maintenance_event"),
                     data: &maintenance_event,
                 },
-                &Organisation::get(entity.organisation, conn)?
-                    .subscribers(conn)?,
+                &Organisation::get(entity.organisation, conn)?.subscribers(conn)?,
             )
             .await?;
     }

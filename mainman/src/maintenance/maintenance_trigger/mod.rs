@@ -20,9 +20,7 @@ pub mod routes;
 //     Manual,
 // }
 
-#[derive(
-    Debug, Serialize, Deserialize, Queryable, Identifiable, Associations,
-)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable, Associations)]
 #[belongs_to(Entity, foreign_key = "entity")]
 #[table_name = "maintenance_trigger"]
 #[primary_key(uuid)]
@@ -54,11 +52,7 @@ impl MaintenanceTrigger {
             .first::<MaintenanceTrigger>(conn)?)
     }
 
-    pub fn delete(
-        entity: Uuid,
-        trigger: Uuid,
-        conn: &Connection,
-    ) -> MainmanResult<()> {
+    pub fn delete(entity: Uuid, trigger: Uuid, conn: &Connection) -> MainmanResult<()> {
         diesel::delete(
             maintenance_trigger::table.filter(
                 maintenance_trigger::entity
@@ -70,10 +64,7 @@ impl MaintenanceTrigger {
         Ok(())
     }
 
-    pub fn organisation(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Organisation> {
+    pub fn organisation(&self, conn: &Connection) -> MainmanResult<Organisation> {
         Ok(entity::table
             .find(self.entity)
             .inner_join(organisation::table)
@@ -83,10 +74,7 @@ impl MaintenanceTrigger {
 }
 
 impl DetailedMaintenanceTrigger {
-    pub fn get(
-        uuid: Uuid,
-        conn: &Connection,
-    ) -> MainmanResult<DetailedMaintenanceTrigger> {
+    pub fn get(uuid: Uuid, conn: &Connection) -> MainmanResult<DetailedMaintenanceTrigger> {
         let (maintenance_trigger, entity) = maintenance_trigger::table
             .find(uuid)
             .inner_join(entity::table)
@@ -97,10 +85,7 @@ impl DetailedMaintenanceTrigger {
         })
     }
 
-    pub fn template(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Option<Template>> {
+    pub fn template(&self, conn: &Connection) -> MainmanResult<Option<Template>> {
         if let Some(template_id) = self.maintenance_trigger.template {
             return Ok(Some(
                 template::table

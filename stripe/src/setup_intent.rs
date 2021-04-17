@@ -15,10 +15,7 @@ pub struct NewSetupIntent<'a> {
 }
 
 impl<'a> NewSetupIntent<'a> {
-    pub async fn create(
-        &self,
-        client: &Client,
-    ) -> Result<SetupIntent, crate::error::Error> {
+    pub async fn create(&self, client: &Client) -> Result<SetupIntent, crate::error::Error> {
         Ok(client.post("/setup_intents".to_owned(), self).await?)
     }
 }

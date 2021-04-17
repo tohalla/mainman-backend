@@ -6,9 +6,7 @@ use bcrypt::verify;
 use chrono::{Duration, Utc};
 use diesel::{dsl::sql, prelude::*, sql_query, sql_types};
 use futures::future::{err, ok, Ready};
-use jsonwebtoken::{
-    decode, encode, DecodingKey, EncodingKey, Header, Validation,
-};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use uuid::Uuid;
 
 use crate::{
@@ -50,33 +48,22 @@ impl Claim {
         Ok(encode(
             &Header::default(),
             &self,
-            &EncodingKey::from_secret(
-                std::env::var("JWT_KEY").unwrap_or("".to_owned()).as_ref(),
-            ),
+            &EncodingKey::from_secret(std::env::var("JWT_KEY").unwrap_or("".to_owned()).as_ref()),
         )?)
     }
 
     pub fn decode(token: &str, validation: &Validation) -> MainmanResult<Self> {
         Ok(decode(
             token,
-            &DecodingKey::from_secret(
-                std::env::var("JWT_KEY").unwrap().as_ref(),
-            ),
+            &DecodingKey::from_secret(std::env::var("JWT_KEY").unwrap().as_ref()),
             validation,
         )
         .map(|data| data.claims)?)
     }
 
-    fn from_identity(
-        identity: Option<String>,
-        validation: &Validation,
-    ) -> MainmanResult<Self> {
-        match identity
-            .and_then(|identity| AuthCookies::parse_auth_token(&identity))
-        {
-            Some(authentication_token) => {
-                Claim::decode(&authentication_token, validation)
-            }
+    fn from_identity(identity: Option<String>, validation: &Validation) -> MainmanResult<Self> {
+        match identity.and_then(|identity| AuthCookies::parse_auth_token(&identity)) {
+            Some(authentication_token) => Claim::decode(&authentication_token, validation),
             None => Err(Error::unauthorized().into()),
         }
     }
@@ -88,10 +75,7 @@ impl Credentials {
 
         let result = account
             .select((id, password))
-            .filter(
-                sql("lower(email) = ")
-                    .bind::<sql_types::Text, _>(self.email.to_lowercase()),
-            )
+            .filter(sql("lower(email) = ").bind::<sql_types::Text, _>(self.email.to_lowercase()))
             .first::<(i64, Vec<u8>)>(conn)
             .map_err(|_| Error::unauthorized())?;
 
@@ -109,11 +93,7 @@ impl<'a> AuthCookies<'a> {
 
         Ok(AuthCookies {
             auth: Self::auth_cookie(&authentication_token),
-            refresh: AuthCookies::refresh_cookie(
-                claim,
-                &authentication_token,
-                conn,
-            )?,
+            refresh: AuthCookies::refresh_cookie(claim, &authentication_token, conn)?,
         })
     }
 
@@ -146,14 +126,12 @@ impl<'a> AuthCookies<'a> {
         authentication_token: &String,
         conn: &Connection,
     ) -> MainmanResult<Cookie<'a>> {
-        let token = sql_query(
-            "SELECT generate_refresh_token($1::INTEGER, $2::TEXT) token",
-        )
-        .bind::<sql_types::BigInt, _>(claim.account_id)
-        .bind::<sql_types::Text, _>(&authentication_token)
-        .get_result::<RefreshToken>(conn)?
-        .0
-        .to_string();
+        let token = sql_query("SELECT generate_refresh_token($1::INTEGER, $2::TEXT) token")
+            .bind::<sql_types::BigInt, _>(claim.account_id)
+            .bind::<sql_types::Text, _>(&authentication_token)
+            .get_result::<RefreshToken>(conn)?
+            .0
+            .to_string();
 
         Ok(Self::decorate(Cookie::build("refresh-token", token)).finish())
     }
@@ -182,13 +160,12 @@ impl RefreshToken {
         conn: &Connection,
     ) -> MainmanResult<Claim> {
         if let Some(authentication_token) = authentication_token {
-            let account_id =
-                sql::<sql_types::BigInt>("SELECT validate_refresh_token(")
-                    .bind::<sql_types::Uuid, _>(self.0)
-                    .sql(",")
-                    .bind::<sql_types::Text, _>(authentication_token)
-                    .sql(")")
-                    .get_result::<i64>(conn)?;
+            let account_id = sql::<sql_types::BigInt>("SELECT validate_refresh_token(")
+                .bind::<sql_types::Uuid, _>(self.0)
+                .sql(",")
+                .bind::<sql_types::Text, _>(authentication_token)
+                .sql(")")
+                .get_result::<i64>(conn)?;
 
             return Ok(account_id.into());
         }

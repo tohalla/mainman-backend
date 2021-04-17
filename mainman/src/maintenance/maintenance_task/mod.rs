@@ -40,9 +40,10 @@ impl MaintenanceTask {
             .filter(maintenance_task::is_available.eq(true))
             .get_result::<Self>(conn)?;
 
-        diesel::update(maintenance_task::table.filter(
-            maintenance_task::maintenance_event.eq(self.maintenance_event),
-        ))
+        diesel::update(
+            maintenance_task::table
+                .filter(maintenance_task::maintenance_event.eq(self.maintenance_event)),
+        )
         .set(maintenance_task::is_available.eq(false))
         .execute(conn)?;
 

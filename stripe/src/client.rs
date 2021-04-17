@@ -41,10 +41,7 @@ impl Client {
         format!("{}/{}", STRIPE_URL, path)
     }
 
-    pub async fn get<T: DeserializeOwned>(
-        &self,
-        path: String,
-    ) -> Result<T, Error> {
+    pub async fn get<T: DeserializeOwned>(&self, path: String) -> Result<T, Error> {
         Ok(serde_json::from_slice::<T>(
             &*self
                 .client

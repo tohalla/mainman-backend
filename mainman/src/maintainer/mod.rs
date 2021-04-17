@@ -14,9 +14,7 @@ use crate::{
 mod handler;
 pub mod routes;
 
-#[derive(
-    Debug, Serialize, Deserialize, Queryable, Associations, Identifiable,
-)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Associations, Identifiable)]
 #[table_name = "maintainer"]
 #[belongs_to(Organisation, foreign_key = "organisation")]
 pub struct Maintainer {
@@ -28,15 +26,7 @@ pub struct Maintainer {
     pub details: Option<serde_json::Value>,
 }
 
-#[derive(
-    Debug,
-    Deserialize,
-    Serialize,
-    Queryable,
-    Associations,
-    Insertable,
-    Identifiable,
-)]
+#[derive(Debug, Deserialize, Serialize, Queryable, Associations, Insertable, Identifiable)]
 #[table_name = "maintainer_entity"]
 #[primary_key(maintainer, entity)]
 #[belongs_to(Maintainer, foreign_key = "maintainer")]
@@ -65,11 +55,7 @@ pub struct PatchMaintainer {
 }
 
 impl Maintainer {
-    pub fn get(
-        id: i64,
-        organisation: i64,
-        conn: &Connection,
-    ) -> MainmanResult<Maintainer> {
+    pub fn get(id: i64, organisation: i64, conn: &Connection) -> MainmanResult<Maintainer> {
         Ok(maintainer::table
             .find(id)
             .filter(maintainer::organisation.eq(organisation))
@@ -83,21 +69,13 @@ impl Maintainer {
             .load::<Entity>(conn)?)
     }
 
-    pub fn patch(
-        &self,
-        payload: &PatchMaintainer,
-        conn: &Connection,
-    ) -> MainmanResult<Maintainer> {
+    pub fn patch(&self, payload: &PatchMaintainer, conn: &Connection) -> MainmanResult<Maintainer> {
         Ok(diesel::update(self)
             .set(payload)
             .get_result::<Maintainer>(conn)?)
     }
 
-    pub fn delete_entities(
-        &self,
-        payload: &Vec<Uuid>,
-        conn: &Connection,
-    ) -> MainmanResult<()> {
+    pub fn delete_entities(&self, payload: &Vec<Uuid>, conn: &Connection) -> MainmanResult<()> {
         diesel::delete(
             maintainer_entity::table.filter(
                 maintainer_entity::maintainer
@@ -127,10 +105,7 @@ impl Creatable<MaintainerEntity> for MaintainerEntity {
 }
 
 impl Creatable<Vec<MaintainerEntity>> for [MaintainerEntity] {
-    fn create(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<MaintainerEntity>> {
+    fn create(&self, conn: &Connection) -> MainmanResult<Vec<MaintainerEntity>> {
         Ok(diesel::insert_into(maintainer_entity::table)
             .values(self)
             .load::<MaintainerEntity>(conn)?)

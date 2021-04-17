@@ -15,9 +15,7 @@ use crate::{
 mod handler;
 pub mod routes;
 
-#[derive(
-    Debug, Serialize, Deserialize, Queryable, Associations, Identifiable,
-)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Associations, Identifiable)]
 #[table_name = "account"]
 pub struct Account {
     pub id: i64,
@@ -81,10 +79,7 @@ impl Account {
         Ok(customer)
     }
 
-    pub fn invites(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<OrganisationInvite>> {
+    pub fn invites(&self, conn: &Connection) -> MainmanResult<Vec<OrganisationInvite>> {
         Ok(organisation_invite::table
             .filter(organisation_invite::email.eq(&self.email))
             .load::<OrganisationInvite>(conn)?)

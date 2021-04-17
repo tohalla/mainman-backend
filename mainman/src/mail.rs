@@ -17,9 +17,7 @@ fn mailer() -> SmtpTransport {
         .build()
 }
 
-pub fn send(
-    message: &Message,
-) -> Result<smtp::response::Response, smtp::Error> {
+pub fn send(message: &Message) -> Result<smtp::response::Response, smtp::Error> {
     mailer().send(message)
 }
 

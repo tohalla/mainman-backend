@@ -52,10 +52,7 @@ pub async fn patch_maintainer(
 }
 
 #[get("{maintainer_id}/entities")]
-pub async fn entities(
-    pool: Data<Pool>,
-    path: Path<(i64, i64)>,
-) -> MainmanResponse<Vec<Entity>> {
+pub async fn entities(pool: Data<Pool>, path: Path<(i64, i64)>) -> MainmanResponse<Vec<Entity>> {
     let conn = &pool.get()?;
     Ok(Maintainer::get((*path).1, (*path).0, conn)?
         .entities(conn)?
@@ -90,7 +87,6 @@ pub async fn delete_entities(
     path: Path<(i64, i64)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
-    Maintainer::get((*path).1, (*path).0, conn)?
-        .delete_entities(&*payload, conn)?;
+    Maintainer::get((*path).1, (*path).0, conn)?.delete_entities(&*payload, conn)?;
     Ok(HttpResponse::Ok().finish())
 }

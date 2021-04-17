@@ -11,9 +11,7 @@ use crate::{
 
 use super::OrganisationAccount;
 
-#[derive(
-    Debug, Associations, Serialize, Deserialize, Queryable, Identifiable,
-)]
+#[derive(Debug, Associations, Serialize, Deserialize, Queryable, Identifiable)]
 #[belongs_to(Organisation, foreign_key = "organisation")]
 #[table_name = "organisation_invite"]
 #[primary_key(uuid)]
@@ -34,22 +32,14 @@ pub struct NewOrganisationInvite {
 }
 
 impl OrganisationInvite {
-    pub fn get(
-        organisation_id: i64,
-        uuid: uuid::Uuid,
-        conn: &Connection,
-    ) -> MainmanResult<Self> {
+    pub fn get(organisation_id: i64, uuid: uuid::Uuid, conn: &Connection) -> MainmanResult<Self> {
         Ok(organisation_invite::table
             .find(uuid)
             .filter(organisation_invite::organisation.eq(organisation_id))
             .first::<OrganisationInvite>(conn)?)
     }
 
-    pub fn accept(
-        &self,
-        claim: &Claim,
-        conn: &Connection,
-    ) -> MainmanResult<OrganisationAccount> {
+    pub fn accept(&self, claim: &Claim, conn: &Connection) -> MainmanResult<OrganisationAccount> {
         let account_id = account::table
             .select(account::id)
             .find(claim.account_id)

@@ -10,10 +10,7 @@ use stripe::{
 use crate::{account::Account, auth::Claim, db::Pool, MainmanResponse};
 
 #[get("stripe")]
-pub async fn get_customer_details(
-    pool: Data<Pool>,
-    claim: Claim,
-) -> MainmanResponse<Customer> {
+pub async fn get_customer_details(pool: Data<Pool>, claim: Claim) -> MainmanResponse<Customer> {
     let conn = &pool.get()?;
     let account = Account::get(claim.account_id, conn)?;
 

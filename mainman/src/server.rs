@@ -15,10 +15,7 @@ pub async fn start() -> std::io::Result<()> {
         App::new()
             .data(pool.clone())
             .app_data(broadcaster.clone())
-            .app_data(
-                JsonConfig::default()
-                    .error_handler(|err, _| ErrorResponse::from(err).into()),
-            )
+            .app_data(JsonConfig::default().error_handler(|err, _| ErrorResponse::from(err).into()))
             .configure(super::cache::add_cache)
             .wrap(Cors::new().supports_credentials().finish())
             .wrap(NormalizePath::new(TrailingSlash::Trim))

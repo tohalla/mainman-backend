@@ -6,9 +6,7 @@ use crate::{
     entity::Entity,
     error::ErrorResponse,
     maintenance::maintenance_request::MaintenanceRequest,
-    schema::{
-        entity, maintenance_event, maintenance_request, maintenance_task,
-    },
+    schema::{entity, maintenance_event, maintenance_request, maintenance_task},
     MainmanResult,
 };
 
@@ -17,9 +15,7 @@ use super::maintenance_task::NewMaintenanceTask;
 mod handler;
 pub mod routes;
 
-#[derive(
-    Debug, Serialize, Deserialize, Queryable, Identifiable, Associations,
-)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable, Associations)]
 #[belongs_to(MaintenanceRequest, foreign_key = "maintenance_request")]
 #[belongs_to(Entity, foreign_key = "entity")]
 #[table_name = "maintenance_event"]
@@ -54,10 +50,7 @@ impl Creatable<MaintenanceEvent> for NewMaintenanceEvent {
                         .filter(maintenance_request::processed_at.is_null())
                         .first::<MaintenanceRequest>(conn)?;
                     diesel::update(&request)
-                        .set(
-                            maintenance_request::processed_at
-                                .eq(Some(Utc::now().naive_utc())),
-                        )
+                        .set(maintenance_request::processed_at.eq(Some(Utc::now().naive_utc())))
                         .execute(conn)?;
                 }
 
@@ -65,8 +58,7 @@ impl Creatable<MaintenanceEvent> for NewMaintenanceEvent {
                     .values(self)
                     .get_result::<MaintenanceEvent>(conn)?;
 
-                let entity =
-                    entity::table.find(event.entity).first::<Entity>(conn)?;
+                let entity = entity::table.find(event.entity).first::<Entity>(conn)?;
                 // create maintenance_task for each maintainer
                 diesel::insert_into(maintenance_task::table)
                     .values(

@@ -14,8 +14,8 @@ use crate::{
     entity::{Entity, EntityOverview, EntityWithOverview},
     maintainer::Maintainer,
     schema::{
-        self, account, entity, maintainer, organisation, organisation_account,
-        organisation_invite, template,
+        self, account, entity, maintainer, organisation, organisation_account, organisation_invite,
+        template,
     },
     template::Template,
     views::entity_overview,
@@ -28,15 +28,7 @@ pub mod invite;
 pub mod plan;
 pub mod routes;
 
-#[derive(
-    Debug,
-    Serialize,
-    Deserialize,
-    Queryable,
-    Associations,
-    AsChangeset,
-    Identifiable,
-)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Associations, AsChangeset, Identifiable)]
 #[table_name = "organisation"]
 pub struct Organisation {
     pub id: i64,
@@ -48,9 +40,7 @@ pub struct Organisation {
     pub plan: i32,
 }
 
-#[derive(
-    Debug, Serialize, Identifiable, Queryable, Associations, Insertable,
-)]
+#[derive(Debug, Serialize, Identifiable, Queryable, Associations, Insertable)]
 #[table_name = "organisation_account"]
 #[belongs_to(Account, foreign_key = "account")]
 #[belongs_to(Organisation, foreign_key = "organisation")]
@@ -89,19 +79,13 @@ pub struct OrganisationOverview {
 }
 
 impl Organisation {
-    pub fn get(
-        organisation_id: i64,
-        conn: &Connection,
-    ) -> MainmanResult<Organisation> {
+    pub fn get(organisation_id: i64, conn: &Connection) -> MainmanResult<Organisation> {
         Ok(organisation::table
             .find(organisation_id)
             .first::<Organisation>(conn)?)
     }
 
-    pub fn overview(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<OrganisationOverview> {
+    pub fn overview(&self, conn: &Connection) -> MainmanResult<OrganisationOverview> {
         Ok(sql_query(
             "SELECT maintainers::INTEGER, entities::INTEGER, accounts::INTEGER FROM organisation_overview WHERE id = $1::bigint",
         )
@@ -109,10 +93,7 @@ impl Organisation {
         .get_result(conn)?)
     }
 
-    pub fn all(
-        account_id: i64,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<Organisation>> {
+    pub fn all(account_id: i64, conn: &Connection) -> MainmanResult<Vec<Organisation>> {
         Ok(organisation_account::table
             .inner_join(organisation::table)
             .select(organisation::all_columns)
@@ -120,19 +101,13 @@ impl Organisation {
             .load::<Organisation>(conn)?)
     }
 
-    pub fn maintainers(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<Maintainer>> {
+    pub fn maintainers(&self, conn: &Connection) -> MainmanResult<Vec<Maintainer>> {
         Ok(Maintainer::belonging_to(self)
             .select(maintainer::all_columns)
             .load::<Maintainer>(conn)?)
     }
 
-    pub fn entities(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<EntityWithOverview>> {
+    pub fn entities(&self, conn: &Connection) -> MainmanResult<Vec<EntityWithOverview>> {
         Ok(Entity::belonging_to(self)
             .inner_join(entity_overview::table)
             .select((entity::all_columns, entity_overview::all_columns))
@@ -148,19 +123,13 @@ impl Organisation {
             .load::<Template>(conn)?)
     }
 
-    pub fn invites(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<OrganisationInvite>> {
+    pub fn invites(&self, conn: &Connection) -> MainmanResult<Vec<OrganisationInvite>> {
         Ok(OrganisationInvite::belonging_to(self)
             .select(organisation_invite::all_columns)
             .load::<OrganisationInvite>(conn)?)
     }
 
-    pub fn accounts(
-        &self,
-        conn: &Connection,
-    ) -> MainmanResult<Vec<PublicAccount>> {
+    pub fn accounts(&self, conn: &Connection) -> MainmanResult<Vec<PublicAccount>> {
         Ok(OrganisationAccount::belonging_to(self)
             .inner_join(account::table)
             .left_join(schema::account_role::table)
@@ -188,11 +157,7 @@ impl Organisation {
             .collect())
     }
 
-    pub fn patch(
-        &self,
-        payload: &PatchOrganisation,
-        conn: &Connection,
-    ) -> MainmanResult<Self> {
+    pub fn patch(&self, payload: &PatchOrganisation, conn: &Connection) -> MainmanResult<Self> {
         Ok(diesel::update(self)
             .set(payload)
             .get_result::<Organisation>(conn)?)

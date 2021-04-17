@@ -17,10 +17,7 @@ pub async fn authenticate(
 }
 
 #[get("")]
-pub async fn get_account(
-    pool: Data<Pool>,
-    claim: super::Claim,
-) -> MainmanResponse<Account> {
+pub async fn get_account(pool: Data<Pool>, claim: super::Claim) -> MainmanResponse<Account> {
     Ok(Account::get(claim.account_id, &pool.get()?)?.into())
 }
 

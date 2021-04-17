@@ -19,13 +19,12 @@ async fn initialize_plans(client: &Client) -> MainmanResult<()> {
 
     info!(target: "mainman", "synchronizing stripe products with plans");
     let products = Product::list(client).await?;
-    let product_update_fut =
-        products.data.into_iter().map(|product| async move {
-            diesel::update(plan::table)
-                .set(plan::stripe_product.eq(product.id))
-                .filter(plan::name.eq(product.name))
-                .execute(conn)
-        });
+    let product_update_fut = products.data.into_iter().map(|product| async move {
+        diesel::update(plan::table)
+            .set(plan::stripe_product.eq(product.id))
+            .filter(plan::name.eq(product.name))
+            .execute(conn)
+    });
     try_join_all(product_update_fut).await?;
 
     info!(target: "mainman", "synchronizing stripe prices with plans");

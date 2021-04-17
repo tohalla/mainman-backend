@@ -60,10 +60,7 @@ impl Broadcaster {
             while task.next().await.is_some() {
                 if let Ok(mut broker) = broker.lock() {
                     for (account, client) in broker.clients.clone().iter_mut() {
-                        if client
-                            .try_send(Bytes::from("data: ping\n\n"))
-                            .is_err()
-                        {
+                        if client.try_send(Bytes::from("data: ping\n\n")).is_err() {
                             broker.disconnect(account);
                         }
                     }
@@ -100,10 +97,7 @@ impl Broadcaster {
 impl Stream for Client {
     type Item = Result<Bytes, Error>;
 
-    fn poll_next(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<Self::Item>> {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match Pin::new(&mut self.0).poll_next(cx) {
             Poll::Ready(Some(v)) => Poll::Ready(Some(Ok(v))),
             Poll::Ready(None) => Poll::Ready(None),
@@ -112,9 +106,7 @@ impl Stream for Client {
     }
 }
 
-impl<'a, T: serde::Serialize + std::fmt::Debug> Into<Bytes>
-    for &Message<'a, T>
-{
+impl<'a, T: serde::Serialize + std::fmt::Debug> Into<Bytes> for &Message<'a, T> {
     fn into(self) -> Bytes {
         let mut payload = self
             .event

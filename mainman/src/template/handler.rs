@@ -15,10 +15,7 @@ pub async fn get_templates(
 }
 
 #[get("{id}")]
-pub async fn get_template(
-    pool: Data<Pool>,
-    path: Path<(i64, i64)>,
-) -> MainmanResponse<Template> {
+pub async fn get_template(pool: Data<Pool>, path: Path<(i64, i64)>) -> MainmanResponse<Template> {
     Ok(Template::get((*path).1, (*path).0, &pool.get()?)?.into())
 }
 

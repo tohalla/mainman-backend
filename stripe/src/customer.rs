@@ -22,10 +22,7 @@ pub struct PatchCustomer<'a> {
 }
 
 impl Customer {
-    pub async fn get(
-        client: &Client,
-        id: &str,
-    ) -> Result<Self, crate::error::Error> {
+    pub async fn get(client: &Client, id: &str) -> Result<Self, crate::error::Error> {
         Ok(client.get(format!("/customers/{}", id)).await?)
     }
 
@@ -41,10 +38,7 @@ impl Customer {
 }
 
 impl<'a> NewCustomer<'a> {
-    pub async fn create(
-        &self,
-        client: &Client,
-    ) -> Result<Customer, crate::error::Error> {
+    pub async fn create(&self, client: &Client) -> Result<Customer, crate::error::Error> {
         Ok(client.post("/customers".to_owned(), self).await?)
     }
 }

@@ -7,9 +7,7 @@ use super::*;
 use crate::{
     db::Pool,
     events::{Broadcaster, Message},
-    maintenance::maintenance_request::{
-        MaintenanceRequest, NewMaintenanceRequest,
-    },
+    maintenance::maintenance_request::{MaintenanceRequest, NewMaintenanceRequest},
     template::TEMPLATES,
     MainmanResponse,
 };
@@ -55,10 +53,7 @@ pub async fn create_maintenance_request(
 }
 
 #[get("{uuid}/template")]
-pub async fn template(
-    pool: Data<Pool>,
-    uuid: Path<Uuid>,
-) -> MainmanResult<HttpResponse> {
+pub async fn template(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
     let trigger = DetailedMaintenanceTrigger::get(*uuid, conn)?;
 

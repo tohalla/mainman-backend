@@ -57,10 +57,7 @@ pub async fn create_account(
 }
 
 #[get("")]
-pub async fn account(
-    pool: Data<Pool>,
-    account_id: Path<i64>,
-) -> MainmanResponse<Account> {
+pub async fn account(pool: Data<Pool>, account_id: Path<i64>) -> MainmanResponse<Account> {
     Ok(Account::get(*account_id, &pool.get()?)?.into())
 }
 

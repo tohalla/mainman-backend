@@ -84,8 +84,7 @@ pub async fn delete_maintainers(
     path: Path<(i64, Uuid)>,
 ) -> MainmanResult<HttpResponse> {
     let conn = &pool.get()?;
-    Entity::get((*path).1, (*path).0, conn)?
-        .delete_maintainers(&*payload, conn)?;
+    Entity::get((*path).1, (*path).0, conn)?.delete_maintainers(&*payload, conn)?;
     Ok(HttpResponse::Accepted().finish())
 }
 

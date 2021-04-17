@@ -17,9 +17,7 @@ pub struct Filter {
     pub processed: Option<bool>,
 }
 
-#[derive(
-    Debug, Serialize, Deserialize, Queryable, Identifiable, Associations,
-)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Identifiable, Associations)]
 #[belongs_to(Entity, foreign_key = "entity")]
 #[table_name = "maintenance_request"]
 pub struct MaintenanceRequest {
@@ -43,10 +41,7 @@ pub struct NewMaintenanceRequest {
 }
 
 impl MaintenanceRequest {
-    pub fn get(
-        id: i64,
-        conn: &Connection,
-    ) -> MainmanResult<MaintenanceRequest> {
+    pub fn get(id: i64, conn: &Connection) -> MainmanResult<MaintenanceRequest> {
         Ok(maintenance_request::table.find(id).first::<Self>(conn)?)
     }
 }

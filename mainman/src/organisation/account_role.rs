@@ -8,9 +8,7 @@ use crate::{
     MainmanResult,
 };
 
-#[derive(
-    Debug, Serialize, Queryable, Associations, AsChangeset, Identifiable,
-)]
+#[derive(Debug, Serialize, Queryable, Associations, AsChangeset, Identifiable)]
 #[table_name = "account_role"]
 #[belongs_to(Organisation, foreign_key = "organisation")]
 #[belongs_to(OrganisationAccount, foreign_key = "id")]
