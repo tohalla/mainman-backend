@@ -24,7 +24,9 @@ pub struct MaintenanceEvent {
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
     pub resolved_at: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub maintenance_request: Option<i64>,
     pub entity: uuid::Uuid,
 }

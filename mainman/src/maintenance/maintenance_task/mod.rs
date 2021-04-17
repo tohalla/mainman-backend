@@ -13,8 +13,11 @@ pub mod routes;
 pub struct MaintenanceTask {
     pub uuid: Uuid,
     pub created_at: NaiveDateTime,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub accepted_at: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved_at: Option<NaiveDateTime>,
     pub maintenance_event: i64,
     pub maintainer: i64,

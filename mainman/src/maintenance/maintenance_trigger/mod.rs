@@ -28,6 +28,7 @@ pub struct MaintenanceTrigger {
     pub uuid: Uuid,
     pub created_at: NaiveDateTime,
     pub entity: Uuid,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub template: Option<i64>,
 }
 

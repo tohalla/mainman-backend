@@ -23,10 +23,14 @@ pub struct Filter {
 pub struct MaintenanceRequest {
     pub id: i64,
     pub created_at: NaiveDateTime,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_by: Option<i64>,
     pub entity: Uuid,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub maintenance_trigger: Option<Uuid>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub processed_at: Option<NaiveDateTime>,
 }
 
