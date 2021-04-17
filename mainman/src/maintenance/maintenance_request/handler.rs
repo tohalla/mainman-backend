@@ -1,4 +1,4 @@
-use actix_web::web::{Data, Path};
+use actix_web::web::{Data, Path, Query};
 use uuid::Uuid;
 
 use super::*;
@@ -10,10 +10,11 @@ use crate::{db::Pool, entity::Entity, MainmanResponse};
 pub async fn maintenance_requests(
     pool: Data<Pool>,
     path: Path<(i64, Uuid)>,
+    filter: Query<Filter>,
 ) -> MainmanResponse<Vec<MaintenanceRequest>> {
     let conn = &pool.get()?;
     Ok(Entity::get((*path).1, (*path).0, conn)?
-        .maintenance_requests(conn)?
+        .maintenance_requests(filter.into_inner(), conn)?
         .into())
 }
 

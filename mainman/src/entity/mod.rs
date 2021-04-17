@@ -9,7 +9,7 @@ use crate::{
     db::{Connection, Creatable, Pool},
     maintainer::{Maintainer, MaintainerEntity},
     maintenance::{
-        maintenance_request::MaintenanceRequest,
+        maintenance_request::{Filter, MaintenanceRequest},
         maintenance_trigger::MaintenanceTrigger,
     },
     organisation::Organisation,
@@ -126,11 +126,21 @@ impl Entity {
 
     pub fn maintenance_requests(
         &self,
+        filter: Filter,
         conn: &Connection,
     ) -> MainmanResult<Vec<MaintenanceRequest>> {
-        Ok(MaintenanceRequest::belonging_to(self)
+        let mut q = MaintenanceRequest::belonging_to(self)
             .select(maintenance_request::all_columns)
-            .load::<MaintenanceRequest>(conn)?)
+            .into_boxed();
+        if let Some(filter) = filter.processed {
+            q = match filter {
+                true => {
+                    q.filter(maintenance_request::processed_at.is_not_null())
+                }
+                false => q.filter(maintenance_request::processed_at.is_null()),
+            };
+        }
+        Ok(q.load::<MaintenanceRequest>(conn)?)
     }
 
     pub fn maintenance_triggers(

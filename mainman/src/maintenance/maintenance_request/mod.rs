@@ -12,6 +12,11 @@ use crate::{
 mod handler;
 pub mod routes;
 
+#[derive(Deserialize)]
+pub struct Filter {
+    pub processed: Option<bool>,
+}
+
 #[derive(
     Debug, Serialize, Deserialize, Queryable, Identifiable, Associations,
 )]
