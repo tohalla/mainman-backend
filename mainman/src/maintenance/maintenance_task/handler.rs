@@ -11,6 +11,14 @@ use crate::{
     MainmanResponse,
 };
 
+#[get("{uuid}")]
+pub async fn maintenance_task(
+    pool: Data<Pool>,
+    uuid: Path<Uuid>,
+) -> MainmanResponse<MaintenanceTask> {
+    Ok(MaintenanceTask::get(*uuid, &pool.get()?)?.into())
+}
+
 #[post("{uuid}/accept")]
 pub async fn accept(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<MaintenanceTask> {
     let conn = &pool.get()?;
