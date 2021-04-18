@@ -71,11 +71,23 @@ impl MaintenanceTask {
         Ok(task)
     }
 
-    pub fn complete(&self, conn: &Connection) -> MainmanResult<Self> {
-        Ok(diesel::update(self)
-            .set(maintenance_task::resolved_at.eq(Some(Utc::now().naive_utc())))
-            .filter(maintenance_task::accepted_at.is_not_null())
-            .get_result::<Self>(conn)?)
+    pub fn resolve(&self, conn: &Connection) -> MainmanResult<Self> {
+        conn.build_transaction().read_write().run(|| {
+            let ts = Some(Utc::now().naive_utc());
+            diesel::update(maintenance_event::table.find(self.maintenance_event))
+                .set(maintenance_event::resolved_at.eq(ts))
+                .execute(conn)?;
+
+            Ok(diesel::update(self)
+                .set(maintenance_task::resolved_at.eq(ts))
+                // TODO: proper error on task resolved / not accepted
+                .filter(
+                    maintenance_task::accepted_at
+                        .is_not_null()
+                        .and(maintenance_task::resolved_at.is_null()),
+                )
+                .get_result::<Self>(conn)?)
+        })
     }
 }
 

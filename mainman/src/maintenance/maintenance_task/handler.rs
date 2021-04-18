@@ -13,7 +13,8 @@ pub async fn accept(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<Maint
 
 #[post("{uuid}/resolve")]
 pub async fn resolve(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<MaintenanceTask> {
-    Ok(MaintenanceTask::get(*uuid, &pool.get()?)?.into())
+    let conn = &pool.get()?;
+    Ok(MaintenanceTask::get(*uuid, conn)?.resolve(conn)?.into())
 }
 
 #[get("{uuid}/template")]
