@@ -43,7 +43,7 @@ pub async fn get_payment_methods(
     .into())
 }
 
-#[post("stripe/payment_methods")]
+#[post("stripe/payment-methods")]
 pub async fn create_payment_method(
     pool: Data<Pool>,
     claim: Claim,
