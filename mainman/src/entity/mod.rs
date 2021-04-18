@@ -9,11 +9,15 @@ use crate::{
     db::{Connection, Creatable, Pool},
     maintainer::{Maintainer, MaintainerEntity},
     maintenance::{
-        maintenance_request::{Filter, MaintenanceRequest},
+        maintenance_event::{Filter as EventFilter, MaintenanceEvent},
+        maintenance_request::{Filter as RequestFilter, MaintenanceRequest},
         maintenance_trigger::MaintenanceTrigger,
     },
     organisation::Organisation,
-    schema::{entity, maintainer, maintainer_entity, maintenance_request, maintenance_trigger},
+    schema::{
+        entity, maintainer, maintainer_entity, maintenance_event, maintenance_request,
+        maintenance_trigger,
+    },
     views::entity_overview,
     MainmanResult,
 };
@@ -108,7 +112,7 @@ impl Entity {
 
     pub fn maintenance_requests(
         &self,
-        filter: Filter,
+        filter: RequestFilter,
         conn: &Connection,
     ) -> MainmanResult<Vec<MaintenanceRequest>> {
         let mut q = MaintenanceRequest::belonging_to(self)
@@ -121,6 +125,23 @@ impl Entity {
             };
         }
         Ok(q.load::<MaintenanceRequest>(conn)?)
+    }
+
+    pub fn maintenance_events(
+        &self,
+        filter: EventFilter,
+        conn: &Connection,
+    ) -> MainmanResult<Vec<MaintenanceEvent>> {
+        let mut q = MaintenanceEvent::belonging_to(self)
+            .select(maintenance_event::all_columns)
+            .into_boxed();
+        if let Some(filter) = filter.resolved {
+            q = match filter {
+                true => q.filter(maintenance_event::resolved_at.is_not_null()),
+                false => q.filter(maintenance_event::resolved_at.is_null()),
+            };
+        }
+        Ok(q.load::<MaintenanceEvent>(conn)?)
     }
 
     pub fn maintenance_triggers(

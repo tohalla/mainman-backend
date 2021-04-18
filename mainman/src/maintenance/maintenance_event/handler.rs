@@ -1,4 +1,4 @@
-use actix_web::web::{Data, Json};
+use actix_web::web::{Data, Json, Query};
 use std::sync::Mutex;
 
 use super::*;
@@ -10,6 +10,16 @@ use crate::{
 };
 
 // entity routes -- /organisation/{organisation}/entities/{entity}/maintenance/events/
+
+#[get("")]
+pub async fn maintenance_events(
+    pool: Data<Pool>,
+    entity: Entity,
+    filter: Query<Filter>,
+) -> MainmanResponse<Vec<MaintenanceEvent>> {
+    let conn = &pool.get()?;
+    Ok(entity.maintenance_events(filter.into_inner(), conn)?.into())
+}
 
 #[post("")]
 pub async fn create_maintenance_event(

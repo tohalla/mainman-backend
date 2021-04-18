@@ -40,6 +40,11 @@ pub struct NewMaintenanceEvent {
     pub entity: uuid::Uuid,
 }
 
+#[derive(Deserialize)]
+pub struct Filter {
+    pub resolved: Option<bool>,
+}
+
 impl Creatable<MaintenanceEvent> for NewMaintenanceEvent {
     fn create(&self, conn: &Connection) -> MainmanResult<MaintenanceEvent> {
         conn.build_transaction()
