@@ -2,7 +2,15 @@ use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::{db::Connection, schema::maintenance_task, MainmanResult};
+use crate::{
+    db::Connection,
+    entity::Entity,
+    schema::{entity, maintenance_event, maintenance_task, template},
+    template::Template,
+    MainmanResult,
+};
+
+use super::maintenance_event::MaintenanceEvent;
 
 mod handler;
 pub mod routes;
@@ -30,6 +38,14 @@ pub struct NewMaintenanceTask {
     pub maintenance_event: i64,
     pub maintainer: i64,
     pub is_available: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DetailedMaintenanceTask {
+    #[serde(flatten)]
+    pub maintenance_task: MaintenanceTask,
+    pub entity: Entity,
+    pub maintenance_event: MaintenanceEvent,
 }
 
 impl MaintenanceTask {
@@ -60,5 +76,32 @@ impl MaintenanceTask {
             .set(maintenance_task::resolved_at.eq(Some(Utc::now().naive_utc())))
             .filter(maintenance_task::accepted_at.is_not_null())
             .get_result::<Self>(conn)?)
+    }
+}
+
+impl DetailedMaintenanceTask {
+    pub fn get(uuid: Uuid, conn: &Connection) -> MainmanResult<DetailedMaintenanceTask> {
+        let (maintenance_task, maintenance_event, entity) = maintenance_task::table
+            .find(uuid)
+            .inner_join(maintenance_event::table)
+            .inner_join(entity::table.on(maintenance_event::entity.eq(entity::uuid)))
+            .first::<(MaintenanceTask, MaintenanceEvent, Entity)>(conn)?;
+        Ok(DetailedMaintenanceTask {
+            maintenance_task,
+            entity,
+            maintenance_event,
+        })
+    }
+
+    pub fn template(&self, conn: &Connection) -> MainmanResult<Option<Template>> {
+        if let Some(template_id) = self.entity.maitenance_report_template {
+            return Ok(Some(
+                template::table
+                    .find(template_id)
+                    .filter(template::organisation.eq(self.entity.organisation))
+                    .first::<Template>(conn)?,
+            ));
+        }
+        Ok(None)
     }
 }

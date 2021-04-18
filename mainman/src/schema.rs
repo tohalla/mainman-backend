@@ -30,6 +30,7 @@ table! {
         name -> Varchar,
         description -> Nullable<Text>,
         organisation -> Int8,
+        maintenance_report_template -> Nullable<Int8>,
     }
 }
 
@@ -171,6 +172,7 @@ table! {
 
 joinable!(account_role -> organisation (organisation));
 joinable!(entity -> organisation (organisation));
+joinable!(entity -> template (maintenance_report_template));
 joinable!(maintainer -> account (account));
 joinable!(maintainer -> organisation (organisation));
 joinable!(maintainer_entity -> entity (entity));

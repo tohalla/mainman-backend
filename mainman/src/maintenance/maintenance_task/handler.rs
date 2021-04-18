@@ -1,8 +1,9 @@
-use actix_web::web::{Data, Path};
+use actix_http::http::header::CONTENT_TYPE;
+use actix_web::web::{Data, HttpResponse, Path};
 use uuid::Uuid;
 
 use super::*;
-use crate::{db::Pool, MainmanResponse};
+use crate::{db::Pool, template::TEMPLATES, MainmanResponse};
 
 #[post("{uuid}/accept")]
 pub async fn accept(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<MaintenanceTask> {
@@ -13,4 +14,24 @@ pub async fn accept(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<Maint
 #[post("{uuid}/resolve")]
 pub async fn resolve(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<MaintenanceTask> {
     Ok(MaintenanceTask::get(*uuid, &pool.get()?)?.into())
+}
+
+#[get("{uuid}/template")]
+pub async fn template(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResult<HttpResponse> {
+    let conn = &pool.get()?;
+    let task = DetailedMaintenanceTask::get(*uuid, conn)?;
+
+    let mut ctx = tera::Context::new();
+    ctx.insert("entity", &task.entity);
+    ctx.insert("event", &task.maintenance_event);
+    ctx.insert("task", &task.maintenance_task);
+
+    let template = match task.template(conn)? {
+        Some(template) => tera::Tera::one_off(&template.content, &ctx, false)?,
+        None => TEMPLATES.render("base/en/maintenance_report.html", &ctx)?,
+    };
+
+    Ok(HttpResponse::Ok()
+        .set_header(CONTENT_TYPE, mime::TEXT_HTML_UTF_8)
+        .body(template))
 }

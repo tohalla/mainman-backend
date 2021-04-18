@@ -32,6 +32,7 @@ pub struct Entity {
     pub name: String,
     pub description: Option<String>,
     pub organisation: i64,
+    pub maitenance_report_template: Option<i64>,
 }
 
 #[derive(Debug, Serialize, Associations, Queryable)]
