@@ -1,9 +1,15 @@
 use actix_http::http::header::CONTENT_TYPE;
 use actix_web::web::{Data, HttpResponse, Path};
+use std::sync::Mutex;
 use uuid::Uuid;
 
 use super::*;
-use crate::{db::Pool, template::TEMPLATES, MainmanResponse};
+use crate::{
+    db::Pool,
+    events::{Broadcaster, Message},
+    template::TEMPLATES,
+    MainmanResponse,
+};
 
 #[post("{uuid}/accept")]
 pub async fn accept(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<MaintenanceTask> {
@@ -12,9 +18,27 @@ pub async fn accept(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<Maint
 }
 
 #[post("{uuid}/resolve")]
-pub async fn resolve(pool: Data<Pool>, uuid: Path<Uuid>) -> MainmanResponse<MaintenanceTask> {
+pub async fn resolve(
+    pool: Data<Pool>,
+    uuid: Path<Uuid>,
+    broker: Data<Mutex<Broadcaster>>,
+) -> MainmanResponse<MaintenanceTask> {
     let conn = &pool.get()?;
-    Ok(MaintenanceTask::get(*uuid, conn)?.resolve(conn)?.into())
+    let (task, event) = MaintenanceTask::get(*uuid, conn)?.resolve(conn)?;
+
+    if let Ok(mut broker) = broker.lock() {
+        broker
+            .send(
+                &Message {
+                    event: Some("maintenance_event"),
+                    data: &event,
+                },
+                &task.organisation(conn)?.subscribers(conn)?,
+            )
+            .await?;
+    }
+
+    Ok(task.into())
 }
 
 #[get("{uuid}/template")]

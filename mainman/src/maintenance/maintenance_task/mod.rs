@@ -5,7 +5,8 @@ use uuid::Uuid;
 use crate::{
     db::Connection,
     entity::Entity,
-    schema::{entity, maintenance_event, maintenance_task, template},
+    organisation::Organisation,
+    schema::{entity, maintenance_event, maintenance_task, organisation, template},
     template::Template,
     MainmanResult,
 };
@@ -71,22 +72,33 @@ impl MaintenanceTask {
         Ok(task)
     }
 
-    pub fn resolve(&self, conn: &Connection) -> MainmanResult<Self> {
+    fn organisation(&self, conn: &Connection) -> MainmanResult<Organisation> {
+        Ok(maintenance_event::table
+            .find(self.maintenance_event)
+            .inner_join(entity::table)
+            .inner_join(organisation::table.on(organisation::id.eq(entity::organisation)))
+            .select(organisation::all_columns)
+            .first::<Organisation>(conn)?)
+    }
+
+    pub fn resolve(&self, conn: &Connection) -> MainmanResult<(Self, MaintenanceEvent)> {
         conn.build_transaction().read_write().run(|| {
             let ts = Some(Utc::now().naive_utc());
-            diesel::update(maintenance_event::table.find(self.maintenance_event))
-                .set(maintenance_event::resolved_at.eq(ts))
-                .execute(conn)?;
 
-            Ok(diesel::update(self)
-                .set(maintenance_task::resolved_at.eq(ts))
-                // TODO: proper error on task resolved / not accepted
-                .filter(
-                    maintenance_task::accepted_at
-                        .is_not_null()
-                        .and(maintenance_task::resolved_at.is_null()),
-                )
-                .get_result::<Self>(conn)?)
+            Ok((
+                diesel::update(self)
+                    .set(maintenance_task::resolved_at.eq(ts))
+                    // TODO: proper error on task resolved / not accepted
+                    .filter(
+                        maintenance_task::accepted_at
+                            .is_not_null()
+                            .and(maintenance_task::resolved_at.is_null()),
+                    )
+                    .get_result::<Self>(conn)?,
+                diesel::update(maintenance_event::table.find(self.maintenance_event))
+                    .set(maintenance_event::resolved_at.eq(ts))
+                    .get_result::<MaintenanceEvent>(conn)?,
+            ))
         })
     }
 }
