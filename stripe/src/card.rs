@@ -16,7 +16,7 @@ pub struct Card {
     pub country: String,
     pub exp_month: i32,
     pub exp_year: i32,
-    pub fingerprint: String,
+    pub fingerprint: Option<String>,
     pub funding: String,
     pub last4: String,
     #[serde(skip_serializing)]
