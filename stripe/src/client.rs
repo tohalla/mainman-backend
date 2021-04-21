@@ -86,4 +86,16 @@ impl Client {
                 .await?,
         )?)
     }
+
+    pub async fn send<T: DeserializeOwned>(&self, path: String) -> Result<T, crate::error::Error> {
+        Ok(serde_json::from_slice::<T>(
+            &*self
+                .client
+                .post(Self::uri(path))
+                .send()
+                .await?
+                .body()
+                .await?,
+        )?)
+    }
 }
