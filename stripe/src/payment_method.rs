@@ -30,6 +30,12 @@ impl PaymentMethod {
             .await?)
     }
 
+    /// Attaches payment method to a customer
+    ///
+    /// # Arguments
+    ///
+    /// * `client` = Stripe client
+    /// * `customer` = the identifier of the customer the payment method will be attached to
     pub async fn attach(
         &self,
         client: &Client,
@@ -40,6 +46,12 @@ impl PaymentMethod {
                 format!("payment_methods/{}/attach", self.id),
                 &AttachPaymentMethod { customer },
             )
+            .await?)
+    }
+
+    pub async fn detach(client: &Client, id: &str) -> Result<Self, crate::error::Error> {
+        Ok(client
+            .send(format!("/payment_methods/{}/detach", id))
             .await?)
     }
 }

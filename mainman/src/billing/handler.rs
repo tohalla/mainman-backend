@@ -1,4 +1,4 @@
-use actix_web::web::{Data, Json};
+use actix_web::web::{Data, Json, Path};
 use futures::future::join;
 use stripe::{
     customer::Customer,
@@ -67,4 +67,10 @@ pub async fn create_payment_method(
     setup_intent_fut?;
 
     Ok(payment_method.into_inner().into())
+}
+
+#[delete("stripe/payment-methods/{id}")]
+pub async fn detach_payment_method(id: Path<String>) -> MainmanResponse<PaymentMethod> {
+    let client = &Client::new();
+    Ok(PaymentMethod::detach(client, &id).await?.into())
 }
