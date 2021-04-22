@@ -71,15 +71,17 @@ impl Client {
         )?)
     }
 
-    pub async fn post<T: DeserializeOwned, U: Serialize>(
+    pub async fn post<T: DeserializeOwned, U: Serialize + std::fmt::Debug>(
         &self,
         path: String,
         payload: &U,
     ) -> Result<T, crate::error::Error> {
+        let uri = Self::uri(path);
+        info!("POST {} <- {}", uri, serde_json::to_string(payload)?);
         Ok(serde_json::from_slice::<T>(
             &*self
                 .client
-                .post(Self::uri(path))
+                .post(uri)
                 .send_form(payload)
                 .await?
                 .body()

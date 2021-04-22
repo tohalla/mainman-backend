@@ -16,18 +16,21 @@ impl std::fmt::Display for Error {
 
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Error {
+        error!("Serde: {:?}", error);
         Error::SerdeError(error)
     }
 }
 
 impl From<client::SendRequestError> for Error {
     fn from(error: client::SendRequestError) -> Error {
+        error!("SendRequestError: {:?}", error);
         Error::SendRequestError(error)
     }
 }
 
 impl From<client::PayloadError> for Error {
     fn from(error: client::PayloadError) -> Error {
+        error!("PayloadError: {:?}", error);
         Error::PayloadError(error)
     }
 }

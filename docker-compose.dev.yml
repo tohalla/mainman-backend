@@ -11,7 +11,7 @@ services:
       - ${PWD}/stripe:/usr/mainman/stripe
     environment:
       - RUST_BACKTRACE=1
-      - RUST_LOG=mainman=debug,actix_web=info
+      - RUST_LOG=debug
 
   nginx:
     command: nginx -g "daemon off;"
