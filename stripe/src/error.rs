@@ -2,7 +2,8 @@ use actix_web::client;
 
 #[derive(Debug)]
 pub enum Error {
-    SerdeError(serde_json::Error),
+    SerdeJSONError(serde_json::Error),
+    SerdeQSError(serde_qs::Error),
     SendRequestError(client::SendRequestError),
     PayloadError(client::PayloadError),
     GenericError,
@@ -17,7 +18,14 @@ impl std::fmt::Display for Error {
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Error {
         error!("Serde: {:?}", error);
-        Error::SerdeError(error)
+        Error::SerdeJSONError(error)
+    }
+}
+
+impl From<serde_qs::Error> for Error {
+    fn from(error: serde_qs::Error) -> Error {
+        error!("Serde: {:?}", error);
+        Error::SerdeQSError(error)
     }
 }
 

@@ -69,7 +69,7 @@ impl Account {
         stripe_client: &Client,
     ) -> MainmanResult<Customer> {
         if let Some(customer) = &self.stripe_customer {
-            return Ok(Customer::get(stripe_client, customer).await?.into());
+            return Ok(Customer::get(stripe_client, customer).await?);
         }
         let customer = NewCustomer { email: &self.email }
             .create(&Client::new())

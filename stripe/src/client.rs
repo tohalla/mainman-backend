@@ -42,15 +42,8 @@ impl Client {
     }
 
     pub async fn get<T: DeserializeOwned>(&self, path: String) -> Result<T, Error> {
-        Ok(serde_json::from_slice::<T>(
-            &*self
-                .client
-                .get(Self::uri(path))
-                .send()
-                .await?
-                .body()
-                .await?,
-        )?)
+        let mut res = self.client.get(Self::uri(path)).send().await?;
+        Ok(serde_json::from_slice::<T>(&res.body().await?)?)
     }
 
     pub async fn get_query<T: DeserializeOwned, U: Serialize>(
@@ -58,17 +51,14 @@ impl Client {
         path: String,
         query: U,
     ) -> Result<T, Error> {
-        Ok(serde_json::from_slice::<T>(
-            &*self
-                .client
-                .get(Self::uri(path))
-                .query(&query)
-                .map_err(|_| Error::GenericError)?
-                .send()
-                .await?
-                .body()
-                .await?,
-        )?)
+        let mut res = self
+            .client
+            .get(Self::uri(path))
+            .query(&query)
+            .map_err(|_| Error::GenericError)?
+            .send()
+            .await?;
+        Ok(serde_json::from_slice::<T>(&res.body().await?)?)
     }
 
     pub async fn post<T: DeserializeOwned, U: Serialize + std::fmt::Debug>(
@@ -76,28 +66,15 @@ impl Client {
         path: String,
         payload: &U,
     ) -> Result<T, crate::error::Error> {
-        let uri = Self::uri(path);
-        info!("POST {} <- {}", uri, serde_json::to_string(payload)?);
-        Ok(serde_json::from_slice::<T>(
-            &*self
-                .client
-                .post(uri)
-                .send_form(payload)
-                .await?
-                .body()
-                .await?,
-        )?)
+        let url = Self::uri(path);
+        let body = serde_qs::to_string(payload)?;
+        debug!("POST {} <- {}", url, body);
+        let mut res = self.client.post(url).send_body(body).await?;
+        Ok(serde_json::from_slice::<T>(&res.body().await?)?)
     }
 
     pub async fn send<T: DeserializeOwned>(&self, path: String) -> Result<T, crate::error::Error> {
-        Ok(serde_json::from_slice::<T>(
-            &*self
-                .client
-                .post(Self::uri(path))
-                .send()
-                .await?
-                .body()
-                .await?,
-        )?)
+        let mut res = self.client.post(Self::uri(path)).send().await?;
+        Ok(serde_json::from_slice::<T>(&res.body().await?)?)
     }
 }

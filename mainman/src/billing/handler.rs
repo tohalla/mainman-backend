@@ -1,7 +1,7 @@
 use actix_web::web::{Data, Json, Path};
 use futures::future::join;
 use stripe::{
-    customer::Customer,
+    customer::{CustomerDetails, PatchCustomer},
     payment_method::{FilterPaymentMethods, PaymentMethod},
     setup_intent::NewSetupIntent,
     Client,
@@ -10,11 +10,34 @@ use stripe::{
 use crate::{account::Account, auth::Claim, db::Pool, MainmanResponse};
 
 #[get("stripe")]
-pub async fn get_customer_details(pool: Data<Pool>, claim: Claim) -> MainmanResponse<Customer> {
+pub async fn customer_details(pool: Data<Pool>, claim: Claim) -> MainmanResponse<CustomerDetails> {
     let conn = &pool.get()?;
-    let account = Account::get(claim.account_id, conn)?;
 
-    Ok(account.stripe_customer(conn, &Client::new()).await?.into())
+    let customer_details: CustomerDetails = Account::get(claim.account_id, conn)?
+        .stripe_customer(conn, &Client::new())
+        .await?
+        .into();
+
+    Ok(customer_details.into())
+}
+
+#[patch("stripe")]
+pub async fn patch_customer(
+    pool: Data<Pool>,
+    claim: Claim,
+    payload: Json<PatchCustomer>,
+) -> MainmanResponse<CustomerDetails> {
+    let client = &Client::new();
+    let conn = &pool.get()?;
+
+    let details: CustomerDetails = Account::get(claim.account_id, conn)?
+        .stripe_customer(conn, &Client::new())
+        .await?
+        .patch(client, &payload)
+        .await?
+        .into();
+
+    Ok(details.into())
 }
 
 #[get("stripe/payment-methods")]
@@ -57,10 +80,10 @@ pub async fn create_payment_method(
     let (setup_intent_fut, attach_fut) = join(
         NewSetupIntent {
             customer: &customer.id,
-            payment_method: &payment_method.id.to_owned(),
+            payment_method: &payment_method.id,
         }
         .create(client),
-        (*payment_method).attach(client, &customer.id),
+        (*payment_method).attach(client, &customer),
     )
     .await;
     attach_fut?;

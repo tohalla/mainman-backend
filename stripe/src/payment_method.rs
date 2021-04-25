@@ -1,4 +1,8 @@
-use crate::{card::Card, Client};
+use crate::{
+    card::Card,
+    customer::{Customer, InvoiceSettings, PatchCustomer},
+    Client,
+};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PaymentMethod {
@@ -35,18 +39,37 @@ impl PaymentMethod {
     /// # Arguments
     ///
     /// * `client` = Stripe client
-    /// * `customer` = the identifier of the customer the payment method will be attached to
+    /// * `customer_id` = the identifier of the customer the payment method will be attached to
     pub async fn attach(
         &self,
         client: &Client,
-        customer: &str,
-    ) -> Result<Self, crate::error::Error> {
-        Ok(client
-            .post(
+        customer: &Customer,
+    ) -> Result<(), crate::error::Error> {
+        client
+            .post::<PaymentMethod, _>(
                 format!("payment_methods/{}/attach", self.id),
-                &AttachPaymentMethod { customer },
+                &AttachPaymentMethod {
+                    customer: &customer.id,
+                },
             )
-            .await?)
+            .await?;
+
+        // make as default payment method if the customer did not have default one set previously
+        if customer.invoice_settings.default_payment_method.is_none() {
+            customer
+                .patch(
+                    client,
+                    &PatchCustomer {
+                        invoice_settings: InvoiceSettings {
+                            default_payment_method: Some(self.id.to_owned()),
+                            ..Default::default()
+                        },
+                    },
+                )
+                .await?;
+        }
+
+        Ok(())
     }
 
     pub async fn detach(client: &Client, id: &str) -> Result<Self, crate::error::Error> {
