@@ -31,14 +31,14 @@ pub fn support() -> Mailbox {
 pub fn from_template(name: &str, ctx: &tera::Context) -> MultiPart {
     MultiPart::alternative()
         .singlepart(
-            SinglePart::builder().header(ContentType::plaintext()).body(
+            SinglePart::builder().header(ContentType::TEXT_PLAIN).body(
                 TEMPLATES
                     .render(&format!("email/en/{}.txt", name), ctx)
                     .unwrap_or_default(),
             ),
         )
         .singlepart(
-            SinglePart::builder().header(ContentType::html()).body(
+            SinglePart::builder().header(ContentType::TEXT_HTML).body(
                 TEMPLATES
                     .render(&format!("email/en/{}.html", name), ctx)
                     .unwrap_or_default(),
